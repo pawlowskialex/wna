@@ -45,7 +45,7 @@ tools/wna/
   macro/                  the proc macros
   host/                   feature host: Wasm bridge, signed packages, hot-swappable slots, composition runtime
   pkg/                    wna-pkg: componentize, keygen, build/sign/precompile, inspect
-  swift/ cpp/             hand-written Swift and C++ runtimes the generated code uses
+  swift/ cpp/ kotlin/     hand-written runtimes the generated code uses (Kotlin: + the generic JNI shim)
 core/rust/                acme:core-rs: storage, persisted to the shell's data directory
 features/smart-reminders/ a feature: one source, built natively (fallback) and as Wasm (package)
 apps/
@@ -53,7 +53,7 @@ apps/
   native/                 acme-app: the Rust half of the app (staticlib/cdylib) + the composition root
   rust-shell/             a desktop shell in Rust, with the end-to-end test
   ios/                    the iOS (and macOS) shell: SwiftPM package over an XCFramework
-tests/conformance/        the cross-binding matrix (Rust, Wasm/Cranelift, Wasm/Pulley, Swift, C++)
+tests/conformance/        the cross-binding matrix (Rust, Wasm/Cranelift, Wasm/Pulley, Swift, C++, Kotlin)
 abi/golden/               checked-in generated headers: `just golden` fails on ABI drift
 ```
 
@@ -90,7 +90,10 @@ renders them:
   one source builds natively or for Wasm.
 - **Swift:** over the C headers as a Clang module.
 - **C++20:** header-only.
-- **Kotlin/JNI:** in progress; see the Status section.
+- **Kotlin:** pure generated Kotlin over one fixed JNI library
+  (`tools/wna/kotlin/jni/wna_jni.c`). Because every slot has the same C shape,
+  nothing per interface needs JNI code. The same path serves Android and the
+  desktop JVM.
 
 **Composition.** `apps/wna.compose.toml` lists the instances and wires each
 import. `wna::compose!` rejects a bad graph at compile time: an unwired
@@ -132,7 +135,8 @@ linear-memory reservations.
 |---|---|
 | `cargo test -p wna-test-rust-client` | The full suite (every v0 type, edge values, traps, stale handles, resources, callbacks) against a Rust server: natively, as a Wasm component under Cranelift, and under Pulley. All three use the same Rust source. |
 | `just swift-test` | Swift client ↔ Rust server, Rust client ↔ Swift server, Swift ↔ Swift |
-| `just cpp-test` | C++ client ↔ Rust server, Rust client ↔ C++ server, C++ ↔ C++, under ASan and UBSan |
+| `just cpp-test` | C++ client ↔ Rust server, Rust client ↔ C++ server, C++ ↔ C++, under ASan and UBSan (findings are fatal) |
+| `just kotlin-test` | Kotlin client ↔ Rust server, Rust client (on a native thread) ↔ Kotlin server, Kotlin ↔ Kotlin, 8 concurrent threads, and version and closed-export traps, under `java -Xcheck:jni`. It also compiles bindings for every world in `wit/` |
 | `cargo test -p acme-rust-shell` | The app end to end through `wna_compose`: the native fallback, hot-installing the signed Wasm build into the same slot with storage shared, rejecting a package with an untrusted signature, one that imports outside its world, or one built for a newer world, then rollback |
 | `just ios-test` | The same flow from the iOS shell, on macOS and inside the iOS Simulator, where the feature runs as precompiled Pulley bytecode |
 | `just golden`, `just c-headers` | Generated headers match `abi/golden`, and compile as C11 and C++20 with every layout assertion passing |
@@ -192,7 +196,7 @@ linear-memory reservations.
 | Phase | State |
 |---|---|
 | 0. Generator | Done: C header, Rust, C++, the function-table contract, the conformance world, golden headers, C++ under ASan/UBSan. Not done: sanitizers on the Rust glue (needs nightly), fuzzing the lifting code. |
-| 1. Shells | iOS: the Swift binding and shell, composition, XCFramework, tests in the Simulator. Android: the Kotlin/JNI binding is being built (JVM-tested; an Android app needs the SDK, which isn't available here). |
+| 1. Shells | iOS: the Swift binding and shell, composition, XCFramework, tests in the Simulator. Android: the Kotlin/JNI binding, tested on the desktop JVM through the same JNI path; the Android app module isn't built because there's no Android SDK here. |
 | 2. Core on WNA | No legacy bridges exist in this greenfield repo; the core is WNA-only. |
 | 3. Features | Done: Wasmtime bridge, slots with fallback, signing, install/rollback/status, Pulley on iOS, AOT artifacts. Not done: fetching (shell networking), feature A/B. |
 

@@ -14,7 +14,7 @@ members = [
   "tests/conformance/rust-server",
   "tests/conformance/rust-sink",
   "tests/conformance/rust-client",
-  "tests/conformance/swift/fixture",
+  "tests/conformance/fixture",
   "tests/conformance/kotlin/fixture",
 
 

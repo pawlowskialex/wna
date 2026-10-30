@@ -10,6 +10,6 @@ crate-type = ["staticlib", "cdylib"]
 
 [dependencies]
 wna.workspace = true
-wna-test-rust-server = { path = "../../rust-server" }
-wna-test-rust-sink = { path = "../../rust-sink" }
-wna-test-rust-client = { path = "../../rust-client" }
+wna-test-rust-server = { path = "../rust-server" }
+wna-test-rust-sink = { path = "../rust-sink" }
+wna-test-rust-client = { path = "../rust-client" }
