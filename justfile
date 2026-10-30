@@ -83,3 +83,17 @@ ios-gen: (feature-package "apps/ios/Tests/AcmeShellTests/Fixtures/smart-reminder
 ios-test sim="iPhone 17 Pro": ios-gen
     cd apps/ios && swift test
     cd apps/ios && xcodebuild test -scheme AcmeShell -destination "platform=iOS Simulator,name={{sim}}" -quiet
+
+cxx := "clang++ -std=c++20 -g -O1 -Wall -Wextra -Werror -fsanitize=address,undefined -fno-omit-frame-pointer"
+
+# C++ <-> Rust conformance under ASan and UBSan.
+cpp-test:
+    cargo build -q -p wna-test-fixture
+    cargo run -q -p wna-gen -- cpp --wit wit --world wna:test/server --out out/cpp/server
+    cargo run -q -p wna-gen -- cpp --wit wit --world wna:test/client --out out/cpp/client
+    mkdir -p out/cpp/build
+    {{cxx}} -c -Iout/cpp/server tests/conformance/cpp/server.cpp -o out/cpp/build/server.o
+    {{cxx}} -c -Iout/cpp/client tests/conformance/cpp/client.cpp -o out/cpp/build/client.o
+    {{cxx}} -Iout/cpp/client tests/conformance/cpp/main.cpp out/cpp/build/server.o out/cpp/build/client.o \
+        target/debug/libwna_test_fixture.a -o out/cpp/build/conformance
+    ASAN_OPTIONS=detect_leaks=0 out/cpp/build/conformance

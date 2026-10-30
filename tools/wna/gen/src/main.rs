@@ -40,6 +40,10 @@ fn main() -> Result<()> {
     let mut files = Files::new();
     match backend.as_str() {
         "c" => c::generate(&wit, &selected, &mut files),
+        "cpp" => {
+            let [w] = worlds.as_slice() else { bail!("cpp needs exactly one --world") };
+            cpp::generate(&wit, wit.world(w)?, &mut files)?;
+        }
         "swift" => {
             let [w] = worlds.as_slice() else { bail!("swift needs exactly one --world") };
             swift::generate(&wit, wit.world(w)?, &swift::Opts { compose: compose }, &mut files)?;

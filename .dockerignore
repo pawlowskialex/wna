@@ -1,0 +1,8 @@
+target/
+out/
+.claude/
+.direnv/
+apps/ios/.build/
+apps/ios/Native/
+apps/ios/Generated/
+keys/*.key
