@@ -16,5 +16,5 @@ fn rust_server() {
     assert!(server.export("wna:test/types@2.0.0").is_err(), "major mismatch is refused");
 
     wna_test_rust_client::bind(types, sink_iface);
-    wna_test_rust_client::run_suite();
+    wna_test_rust_client::run_suite(false);
 }

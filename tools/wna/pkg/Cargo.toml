@@ -1,0 +1,16 @@
+[package]
+name = "wna-pkg"
+description = "Builds, signs and inspects WNA feature packages"
+edition.workspace = true
+version.workspace = true
+license.workspace = true
+
+[dependencies]
+wna-abi.workspace = true
+wna-host.workspace = true
+anyhow.workspace = true
+ed25519-dalek = { workspace = true, features = ["rand_core"] }
+rand = "0.8"
+serde_json.workspace = true
+wit-component = "0.262"
+wasmtime = { workspace = true, features = ["component-model", "cranelift", "pulley", "std", "anyhow"] }

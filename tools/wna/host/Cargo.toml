@@ -1,0 +1,24 @@
+[package]
+name = "wna-host"
+description = "The WNA feature host: a Wasmtime bridge, signed feature packages, and hot-swappable slots"
+edition.workspace = true
+version.workspace = true
+license.workspace = true
+
+[features]
+default = ["cranelift"]
+# Compile components on device (Android, host). iOS builds leave this off and
+# run precompiled Pulley bytecode.
+cranelift = ["wasmtime/cranelift"]
+
+[dependencies]
+wna.workspace = true
+wna-abi.workspace = true
+anyhow.workspace = true
+arc-swap.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+sha2.workspace = true
+ed25519-dalek.workspace = true
+tar = "0.4"
+wasmtime = { workspace = true, features = ["component-model", "runtime", "std", "pulley", "anyhow"] }

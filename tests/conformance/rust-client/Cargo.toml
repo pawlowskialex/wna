@@ -10,3 +10,5 @@ wna.workspace = true
 [dev-dependencies]
 wna-test-rust-server = { path = "../rust-server" }
 wna-test-rust-sink = { path = "../rust-sink" }
+wna-host.workspace = true
+wna-abi.workspace = true

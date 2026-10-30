@@ -74,9 +74,19 @@ fn expand(input: &Input) -> anyhow::Result<proc_macro2::TokenStream> {
     let world = wit.world(&input.world.value())?;
     let name = input.name.as_ref().map(|n| n.value()).unwrap_or_else(|| std::env::var("CARGO_PKG_NAME").unwrap_or_default());
     let derives: Vec<String> = input.additional_derives.iter().map(|p| quote!(#p).to_string().replace(' ', "")).collect();
-    let native: proc_macro2::TokenStream = wna_gen::rust::generate(&wit, world, &wna_gen::rust::Opts { name, additional_derives: derives })?
-        .parse()
-        .map_err(|e| anyhow::anyhow!("generated code does not parse: {e}"))?;
+    let src = wna_gen::rust::generate(&wit, world, &wna_gen::rust::Opts { name, additional_derives: derives })?;
+    let mut file: syn::File = syn::parse_str(&src).map_err(|e| anyhow::anyhow!("generated code does not parse: {e}"))?;
+    // Native bindings exist only off-wasm; on wasm, wit-bindgen's take their place.
+    for item in &mut file.items {
+        let attrs = match item {
+            syn::Item::Mod(m) => &mut m.attrs,
+            syn::Item::Macro(m) => &mut m.attrs,
+            syn::Item::Use(u) => &mut u.attrs,
+            _ => continue,
+        };
+        attrs.push(syn::parse_quote!(#[cfg(not(target_family = "wasm"))]));
+    }
+    let native = quote!(#file);
 
     // wit-bindgen wants package directories in dependency order.
     let dirs: Vec<String> = wna_abi::package_dirs_in_order(&root)?.iter().map(|d| d.display().to_string()).collect();
@@ -87,7 +97,6 @@ fn expand(input: &Input) -> anyhow::Result<proc_macro2::TokenStream> {
         #[cfg(not(target_family = "wasm"))]
         const _: () = { #( let _ = include_bytes!(#tracked); )* };
 
-        #[cfg(not(target_family = "wasm"))]
         #native
 
         #[cfg(target_family = "wasm")]
@@ -96,7 +105,7 @@ fn expand(input: &Input) -> anyhow::Result<proc_macro2::TokenStream> {
             path: [#(#dirs),*],
             generate_all,
             runtime_path: "::wna::__private::wit_bindgen::rt",
-            bitflags_path: "::wna::__private::wit_bindgen::bitflags",
+            bitflags_path: "::wna::__private::bitflags",
             additional_derives: [#(#derives),*],
         });
     })

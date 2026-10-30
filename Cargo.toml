@@ -5,6 +5,8 @@ members = [
   "tools/wna/gen",
   "tools/wna/rt",
   "tools/wna/macro",
+  "tools/wna/host",
+  "tools/wna/pkg",
   "tests/conformance/rust-server",
   "tests/conformance/rust-sink",
   "tests/conformance/rust-client",

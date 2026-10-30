@@ -6,3 +6,6 @@ publish = false
 
 [dependencies]
 wna.workspace = true
+
+[lib]
+crate-type = ["rlib", "cdylib"]

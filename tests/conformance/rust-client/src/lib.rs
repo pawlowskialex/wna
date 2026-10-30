@@ -54,7 +54,9 @@ fn bag(n: u32) -> Bag {
 }
 
 /// Runs every check; panics with a description on the first failure.
-pub fn run_suite() {
+/// `isolated`: the server runs in a Wasm sandbox, where a guest panic aborts
+/// without a message and the trapped instance is replaced by a fresh one.
+pub fn run_suite(isolated: bool) {
     // Scalars and edge values.
     for seed in 0..4 {
         assert_eq!(echo_scalars(scalars(seed)), scalars(seed));
@@ -99,7 +101,11 @@ pub fn run_suite() {
     no_result(1);
     let t = ::wna::catch(|| boom("kaboom")).unwrap_err();
     assert_eq!(t.code, TRAP_PANIC, "{t}");
-    assert!(t.message.contains("kaboom"), "{t}");
+    if isolated {
+        assert!(t.message.contains("trapped"), "{t}");
+    } else {
+        assert!(t.message.contains("kaboom"), "{t}");
+    }
     // The server survives a trap.
     assert_eq!(sum(&[1, 2, 3, -4]), 2);
     assert_eq!(sum(&[]), 0);
