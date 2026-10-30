@@ -3,6 +3,7 @@
 
 pub mod c;
 pub mod cpp;
+pub mod kotlin;
 pub mod rust;
 pub mod swift;
 

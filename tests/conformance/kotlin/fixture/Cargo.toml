@@ -1,0 +1,14 @@
+[package]
+name = "wna-test-kotlin-fixture"
+edition.workspace = true
+version.workspace = true
+publish = false
+
+[dependencies]
+wna.workspace = true
+wna-test-rust-server = { path = "../../rust-server" }
+wna-test-rust-sink = { path = "../../rust-sink" }
+wna-test-rust-client = { path = "../../rust-client" }
+
+[lib]
+crate-type = ["cdylib"]

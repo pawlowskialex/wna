@@ -1694,6 +1694,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "wna-test-kotlin-fixture"
+version = "0.1.0"
+dependencies = [
+ "wna",
+ "wna-test-rust-client",
+ "wna-test-rust-server",
+ "wna-test-rust-sink",
+]
+
+[[package]]
 name = "wna-test-rust-client"
 version = "0.1.0"
 dependencies = [
