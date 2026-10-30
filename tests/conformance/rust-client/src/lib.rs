@@ -40,7 +40,7 @@ fn bag(n: u32) -> Bag {
         name: format!("bag-{n}-ünïcödé-🎒"),
         tags: (0..n).map(|i| format!("t{i}")).collect(),
         shapes: vec![Shape::Circle(1.5), Shape::Rect((2.0, -3.0)), Shape::Label("x".repeat(n as usize)), Shape::Empty],
-        color: if n % 2 == 0 { Some(Color::Blue) } else { None },
+        color: if n.is_multiple_of(2) { Some(Color::Blue) } else { None },
         nested: match n % 3 {
             0 => None,
             1 => Some(None),

@@ -11,22 +11,31 @@ fn sink() -> Iface {
 }
 
 /// A Rust sink provider's `wna:test/sink`.
+///
+/// # Safety
+/// `out` must be writable.
 #[unsafe(no_mangle)]
-pub extern "C" fn wna_fixture_rust_sink(out: *mut Iface) {
+pub unsafe extern "C" fn wna_fixture_rust_sink(out: *mut Iface) {
     unsafe { *out = sink() };
 }
 
 /// A Rust server's `wna:test/types`, bound to `sink`.
+///
+/// # Safety
+/// `out` must be writable; `sink` a valid table.
 #[unsafe(no_mangle)]
-pub extern "C" fn wna_fixture_rust_server(sink: Iface, out: *mut Iface) {
+pub unsafe extern "C" fn wna_fixture_rust_server(sink: Iface, out: *mut Iface) {
     let d = unsafe { Descriptor::from_ptr(wna_test_rust_server::wna_test_rust_server__wna_component()) };
     unsafe { *out = d.instantiate(&[sink]).unwrap().export("wna:test/types").unwrap() };
 }
 
 /// Runs the Rust client's suite against `types`/`sink`. Returns 0 on
 /// success; otherwise writes the failure into `msg` (static, UTF-8).
+///
+/// # Safety
+/// `msg` must be writable; `types`/`sink` valid tables.
 #[unsafe(no_mangle)]
-pub extern "C" fn wna_fixture_run_rust_client(types: Iface, sink: Iface, msg: *mut WnaList<u8>) -> i32 {
+pub unsafe extern "C" fn wna_fixture_run_rust_client(types: Iface, sink: Iface, msg: *mut WnaList<u8>) -> i32 {
     let r = catch_unwind(AssertUnwindSafe(|| {
         wna_test_rust_client::bind(types, sink);
         wna_test_rust_client::run_suite(false);

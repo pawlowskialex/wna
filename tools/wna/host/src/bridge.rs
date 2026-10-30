@@ -7,6 +7,7 @@ use crate::dynval::{Cx, Mem, ResKind, placeholder};
 use anyhow::{Context, Result, bail};
 use std::collections::HashMap;
 use std::ffi::c_void;
+use std::sync::atomic::{AtomicU64, Ordering};
 use std::sync::{Arc, Mutex};
 use wasmtime::component::{Component, Func, Linker, ResourceAny, ResourceType, Val};
 use wasmtime::{AsContextMut, Engine, Store, StoreLimits, StoreLimitsBuilder};
@@ -121,6 +122,15 @@ pub struct Bridge {
     component: Component,
     limits: Limits,
     live: Mutex<Option<Live>>,
+    /// Thread currently inside the instance (0 = none): a Store runs one
+    /// call at a time, and re-entering it from the same thread must trap,
+    /// not deadlock.
+    owner: AtomicU64,
+}
+
+fn thread_tag() -> u64 {
+    thread_local!(static TAG: u8 = const { 0 });
+    TAG.with(|t| t as *const u8 as u64)
 }
 
 struct Live {
@@ -194,7 +204,7 @@ impl Bridge {
     pub fn instantiate(engine: &Engine, world: &Arc<World>, component: &Component, natives: &HashMap<String, Iface>, limits: Limits) -> Result<Arc<Bridge>> {
         let linker = linker(engine, world, natives)?;
         let live = Self::live(engine, world, &linker, component, &limits)?;
-        Ok(Arc::new(Bridge { world: world.clone(), engine: engine.clone(), linker, component: component.clone(), limits, live: Mutex::new(Some(live)) }))
+        Ok(Arc::new(Bridge { world: world.clone(), engine: engine.clone(), linker, component: component.clone(), limits, live: Mutex::new(Some(live)), owner: AtomicU64::new(0) }))
     }
 
     fn live(engine: &Engine, world: &Arc<World>, linker: &Linker<State>, component: &Component, limits: &Limits) -> Result<Live> {
@@ -249,7 +259,19 @@ impl Bridge {
     }
 
     unsafe fn call(&self, export: usize, slot: usize, args: *const c_void, ret: *mut c_void, alloc: *const Alloc) -> Result<(), Trap> {
+        let me = thread_tag();
+        if self.owner.load(Ordering::Acquire) == me {
+            return Err(Trap::new(TRAP_REENTRANCE, "the feature instance is already running on this thread"));
+        }
         let mut guard = self.live.lock().unwrap_or_else(|e| e.into_inner());
+        self.owner.store(me, Ordering::Release);
+        struct Leave<'a>(&'a AtomicU64);
+        impl Drop for Leave<'_> {
+            fn drop(&mut self) {
+                self.0.store(0, Ordering::Release);
+            }
+        }
+        let _leave = Leave(&self.owner);
         if guard.is_none() {
             if !self.limits.restart {
                 return Err(Trap::new(TRAP_UNAVAILABLE, "the feature instance trapped earlier"));
@@ -271,9 +293,9 @@ impl Bridge {
             match &live.exports[export][slot] {
                 Entry::Drop => {
                     let h = *(args as *const u32);
-                    match live.guest_handles.remove(h) {
-                        Ok(any) => any.resource_drop(&mut cx.store).map_err(trapped),
-                        Err(t) => return Err(t),
+                    {
+                        let any = live.guest_handles.remove(h)?;
+                        any.resource_drop(&mut cx.store).map_err(trapped)
                     }
                 }
                 Entry::Func(None, info) => return Err(Trap::new(TRAP_UNAVAILABLE, format!("{}: not provided by this feature version", info.what))),

@@ -3,14 +3,20 @@
 set shell := ["bash", "-euo", "pipefail", "-c"]
 
 wasm_target := "wasm32-unknown-unknown"
-pkg := "target/debug/wna-pkg"
+target := env_var_or_default("CARGO_TARGET_DIR", "target")
+pkg := target / "debug/wna-pkg"
 
 default: test
 
-# Every test: Rust units, the cross-binding conformance matrix, the app.
+# Every test on macOS: Rust, C, C++, Swift, the app, iOS (Simulator).
 test: wasm-test-server features
     cargo test --workspace
-    just c-headers
+    just c-headers golden cpp-test swift-test ios-test
+
+# Every test that runs on Linux (CI image): no Swift/iOS.
+test-linux: wasm-test-server features
+    cargo test --workspace
+    just c-headers golden cpp-test
 
 # Generated C headers compile as C11 and C++20 (their _Static_asserts check every layout).
 c-headers:
@@ -34,7 +40,7 @@ _pkg-tool:
 component crate out: _pkg-tool
     cargo build -q -p {{crate}} --target {{wasm_target}} --release
     mkdir -p $(dirname {{out}})
-    {{pkg}} componentize target/{{wasm_target}}/release/$(echo {{crate}} | tr - _).wasm -o {{out}}
+    {{pkg}} componentize {{target}}/{{wasm_target}}/release/$(echo {{crate}} | tr - _).wasm -o {{out}}
 
 wasm-test-server: (component "wna-test-rust-server" "out/wasm/wna-test-rust-server.wasm")
 
@@ -58,7 +64,7 @@ swift-test:
     just _swift-module ConfClient out/swift/build out/swift/conformance/Client/ClientWorld.swift tests/conformance/swift/Client.swift
     swiftc {{swift_flags}} -I out/swift/conformance/CWna/include -I tests/conformance/swift/include -I out/swift/build \
         tests/conformance/swift/main.swift -L out/swift/build -lWna -lConfServer -lConfClient \
-        -L target/debug -lwna_test_fixture -o out/swift/build/conformance
+        -L {{target}}/debug -lwna_test_fixture -o out/swift/build/conformance
     out/swift/build/conformance
 
 ios_targets := "aarch64-apple-ios aarch64-apple-ios-sim"
@@ -74,15 +80,18 @@ ios-gen: (feature-package "apps/ios/Tests/AcmeShellTests/Fixtures/smart-reminder
     for t in {{ios_targets}}; do cargo rustc -q -p acme-app --lib --crate-type staticlib --target $t --no-default-features --release; done
     cargo rustc -q -p acme-app --lib --crate-type staticlib --release
     rm -rf apps/ios/Native && xcodebuild -create-xcframework \
-        -library target/release/libacme_app.a \
-        -library target/aarch64-apple-ios/release/libacme_app.a \
-        -library target/aarch64-apple-ios-sim/release/libacme_app.a \
+        -library {{target}}/release/libacme_app.a \
+        -library {{target}}/aarch64-apple-ios/release/libacme_app.a \
+        -library {{target}}/aarch64-apple-ios-sim/release/libacme_app.a \
         -output apps/ios/Native/AcmeNative.xcframework > /dev/null
 
 # The iOS shell's tests on macOS (Cranelift) and in the iOS Simulator (Pulley).
 ios-test sim="iPhone 17 Pro": ios-gen
     cd apps/ios && swift test
     cd apps/ios && xcodebuild test -scheme AcmeShell -destination "platform=iOS Simulator,name={{sim}}" -quiet
+
+# System libraries a Rust staticlib needs when linked by a C/C++ toolchain.
+rust_sys_libs := if os() == "linux" { "-lpthread -ldl -lm" } else { "" }
 
 cxx := "clang++ -std=c++20 -g -O1 -Wall -Wextra -Werror -fsanitize=address,undefined -fno-omit-frame-pointer"
 
@@ -95,5 +104,5 @@ cpp-test:
     {{cxx}} -c -Iout/cpp/server tests/conformance/cpp/server.cpp -o out/cpp/build/server.o
     {{cxx}} -c -Iout/cpp/client tests/conformance/cpp/client.cpp -o out/cpp/build/client.o
     {{cxx}} -Iout/cpp/client tests/conformance/cpp/main.cpp out/cpp/build/server.o out/cpp/build/client.o \
-        target/debug/libwna_test_fixture.a -o out/cpp/build/conformance
+        {{target}}/debug/libwna_test_fixture.a {{rust_sys_libs}} -o out/cpp/build/conformance
     ASAN_OPTIONS=detect_leaks=0 out/cpp/build/conformance

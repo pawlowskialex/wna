@@ -369,13 +369,12 @@ impl<'a> Gen<'a> {
                 Dir::Import => {
                     writeln!(s, "    /// The bound `{}` table. Set by the world's `bind`/`compose`.\n    nonisolated(unsafe) public static var iface = wna_iface()\n", self.wit.iface_id(iface)).unwrap();
                     for slot in &slots {
-                        if let Some(f) = slot.func() {
-                            if resource_of_func(f).is_none() {
+                        if let Some(f) = slot.func()
+                            && resource_of_func(f).is_none() {
                                 s.push_str(&self.error_type(iface, f));
                                 s.push_str(&docs(&f.docs, "    "));
                                 s.push_str(&self.import_fn(iface, slot, f, "    "));
                             }
-                        }
                     }
                     for (name, &tid) in &i.types {
                         if matches!(self.wit.resolve.types[tid].kind, TypeDefKind::Resource) {
@@ -568,12 +567,9 @@ impl<'a> Gen<'a> {
                         None => format!("{ename}()"),
                     };
                     writeln!(body, "{indent}    if __ret.is_err != 0 {{ throw {thrown} }}").unwrap();
-                    match self.result_ok(f) {
-                        Some(t) => {
-                            let l = self.lift(iface, t, "__ret.val.ok");
-                            writeln!(body, "{indent}    return {l}").unwrap();
-                        }
-                        None => {}
+                    if let Some(t) = self.result_ok(f) {
+                        let l = self.lift(iface, t, "__ret.val.ok");
+                        writeln!(body, "{indent}    return {l}").unwrap();
                     }
                 } else {
                     let l = self.lift(iface, r, "__ret");
@@ -607,12 +603,11 @@ impl<'a> Gen<'a> {
 "
         );
         for slot in slots {
-            if let Some(f) = slot.func() {
-                if resource_of_func(f) == Some(tid) {
+            if let Some(f) = slot.func()
+                && resource_of_func(f) == Some(tid) {
                     s.push_str(&docs(&f.docs, "        "));
                     s.push_str(&self.import_fn(iface, slot, f, "        "));
                 }
-            }
         }
         s.push_str("    }\n");
         s
@@ -657,7 +652,7 @@ impl<'a> Gen<'a> {
         writeln!(s, "\n    static let __table: UnsafeMutablePointer<{prefix}> = {{\n        var t = {prefix}()\n        t.hdr = wnaHeader(size: {size})").unwrap();
         for slot in slots {
             let fname = field(&slot.name);
-            writeln!(s, "        t.{} = {{ inst, args, ret, alloc in wnaExport(inst, alloc) {{ box, cx in", if crate::c::field(&slot.name) != slot.name { fname.clone() } else { fname.clone() }).unwrap();
+            writeln!(s, "        t.{fname} = {{ inst, args, ret, alloc in wnaExport(inst, alloc) {{ box, cx in").unwrap();
             match slot.kind {
                 SlotKind::Drop(r) => writeln!(s, "            try box.resources[{}].remove(args!.pointee)", self.res_index(r)).unwrap(),
                 SlotKind::Func(f) => s.push_str(&self.export_body(iface, f)),

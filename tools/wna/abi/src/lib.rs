@@ -634,11 +634,10 @@ fn visit(wit: &Wit, ty: Type, seen: &mut std::collections::HashSet<TypeId>, out:
 pub fn used_interfaces(wit: &Wit, iface: InterfaceId) -> Vec<InterfaceId> {
     let mut out = Vec::new();
     for id in reachable_types(wit, iface) {
-        if let TypeOwner::Interface(o) = wit.resolve.types[id].owner {
-            if o != iface && !out.contains(&o) {
+        if let TypeOwner::Interface(o) = wit.resolve.types[id].owner
+            && o != iface && !out.contains(&o) {
                 out.push(o);
             }
-        }
     }
     out
 }

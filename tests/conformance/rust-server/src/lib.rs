@@ -40,7 +40,7 @@ impl Guest for Server {
         (a, b)
     }
     fn check(n: u64) -> Result<u64, Failure> {
-        if n % 2 == 0 { Ok(n) } else if n > 1000 { Err(Failure::TooBig(n)) } else { Err(Failure::BadInput(format!("{n} is odd"))) }
+        if n.is_multiple_of(2) { Ok(n) } else if n > 1000 { Err(Failure::TooBig(n)) } else { Err(Failure::BadInput(format!("{n} is odd"))) }
     }
     fn check_unit(fail: bool) -> Result<(), ()> {
         if fail { Err(()) } else { Ok(()) }

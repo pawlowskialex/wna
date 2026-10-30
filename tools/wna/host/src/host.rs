@@ -7,7 +7,7 @@ use crate::bridge::{Bridge, Limits, World};
 use crate::dyntable::{Dispatch, DynTable};
 use crate::package::{self, Manifest};
 use crate::Execution;
-use anyhow::{Context, Result, bail, ensure};
+use anyhow::{Context, Result, ensure};
 use arc_swap::ArcSwap;
 use ed25519_dalek::VerifyingKey;
 use std::collections::HashMap;
@@ -102,13 +102,11 @@ impl Dispatch for Forward {
     unsafe fn call(&self, slot: usize, args: *const c_void, ret: *mut c_void, alloc: *const Alloc) -> Result<(), Trap> {
         let t = self.target.load_full();
         let r = unsafe { t.iface.invoke(TABLE_HEADER_SIZE + 8 * slot, args, ret, alloc) };
-        if let Err(e) = &r {
-            if t.wasm && e.code == TRAP_PANIC {
-                if let Some(h) = self.host.upgrade() {
+        if let Err(e) = &r
+            && t.wasm && e.code == TRAP_PANIC
+                && let Some(h) = self.host.upgrade() {
                     h.on_trap(self.slot, &e.message);
                 }
-            }
-        }
         r
     }
 }
@@ -215,7 +213,7 @@ impl FeatureHost {
         #[cfg(feature = "cranelift")]
         return Component::new(&self.engine, &pkg.component).map_err(anyhow::Error::from).context("compiling feature");
         #[cfg(not(feature = "cranelift"))]
-        bail!("package has no precompiled `{key}` artifact and this build cannot compile Wasm")
+        anyhow::bail!("package has no precompiled `{key}` artifact and this build cannot compile Wasm")
     }
 
     /// Instantiates a loaded package and points the slot's tables at it.

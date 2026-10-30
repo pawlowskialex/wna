@@ -46,7 +46,7 @@ fn main() -> Result<()> {
         }
         "swift" => {
             let [w] = worlds.as_slice() else { bail!("swift needs exactly one --world") };
-            swift::generate(&wit, wit.world(w)?, &swift::Opts { compose: compose }, &mut files)?;
+            swift::generate(&wit, wit.world(w)?, &swift::Opts { compose }, &mut files)?;
         }
         "rust" => {
             let [w] = worlds.as_slice() else { bail!("rust needs exactly one --world") };

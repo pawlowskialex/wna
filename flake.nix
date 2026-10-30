@@ -32,7 +32,7 @@
               pkgs.just
               pkgs.wasm-tools
               pkgs.wasmtime
-            ] ++ pkgs.lib.optionals pkgs.stdenv.hostPlatform.isLinux [ pkgs.clang pkgs.swift ];
+            ] ++ pkgs.lib.optionals pkgs.stdenv.hostPlatform.isLinux [ pkgs.clang ];
             JAVA_HOME = jdk.home;
             # On macOS, C/C++/Swift and Rust linking use Xcode's toolchain and
             # SDKs (needed for iOS anyway); drop the Nix cc-wrapper that the

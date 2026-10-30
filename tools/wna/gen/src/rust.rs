@@ -49,11 +49,10 @@ pub fn generate(wit: &Wit, world: WorldId, opts: &Opts) -> Result<String> {
     }
     for &i in &all {
         for f in wit.resolve.interfaces[i].functions.values() {
-            if let Some(Type::Id(r)) = f.result {
-                if let TypeDefKind::Result(Result_ { err: Some(Type::Id(e)), .. }) = &wit.resolve.types[r].kind {
+            if let Some(Type::Id(r)) = f.result
+                && let TypeDefKind::Result(Result_ { err: Some(Type::Id(e)), .. }) = &wit.resolve.types[r].kind {
                     g.err_types.insert(wit.dealias_id(*e));
                 }
-            }
         }
     }
     all.sort_by_key(|i| (g.dirs[i] == Dir::Export, wit.iface_name(*i)));
@@ -225,11 +224,10 @@ impl<'a> Gen<'a> {
             Type::Id(id) => {
                 let t = &self.wit.resolve.types[id];
                 if t.name.is_some() {
-                    if let TypeDefKind::Type(inner) = t.kind {
-                        if matches!(self.wit.dealias(inner), Type::Id(r) if matches!(self.wit.resolve.types[r].kind, TypeDefKind::Resource)) {
+                    if let TypeDefKind::Type(inner) = t.kind
+                        && matches!(self.wit.dealias(inner), Type::Id(r) if matches!(self.wit.resolve.types[r].kind, TypeDefKind::Resource)) {
                             return self.named_path(from, id);
                         }
-                    }
                     let p = self.named_path(from, id);
                     return if self.is_copy(ty) { p } else { format!("&{p}") };
                 }
@@ -254,11 +252,10 @@ impl<'a> Gen<'a> {
 
     /// The `#[repr(C)]` form of a type.
     fn abi(&self, from: InterfaceId, ty: Type) -> String {
-        if let Type::Id(id) = self.wit.dealias(ty) {
-            if matches!(self.wit.resolve.types[id].kind, TypeDefKind::Handle(_) | TypeDefKind::Resource) {
+        if let Type::Id(id) = self.wit.dealias(ty)
+            && matches!(self.wit.resolve.types[id].kind, TypeDefKind::Handle(_) | TypeDefKind::Resource) {
                 return "u32".into();
             }
-        }
         format!("<{} as {RT}::lift::Abi>::Abi", self.owned(from, ty))
     }
 
@@ -357,12 +354,11 @@ impl<'a> Gen<'a> {
         match dir {
             Dir::Import => {
                 for slot in &slots {
-                    if let Some(f) = slot.func() {
-                        if resource_of_func(f).is_none() {
+                    if let Some(f) = slot.func()
+                        && resource_of_func(f).is_none() {
                             s.push_str(&docs(&f.docs, ""));
                             s.push_str(&self.import_fn(iface, slot, f, ""));
                         }
-                    }
                 }
             }
             Dir::Export => self.export_side(iface, &slots, &mut s)?,
@@ -378,11 +374,10 @@ impl<'a> Gen<'a> {
         match &t.kind {
             TypeDefKind::Type(inner) => {
                 writeln!(s, "pub type {rname} = {};", self.owned(iface, *inner)).unwrap();
-                if let Type::Id(r) = self.wit.dealias(*inner) {
-                    if matches!(self.wit.resolve.types[r].kind, TypeDefKind::Resource) && self.resource_dir(r) == Dir::Export {
+                if let Type::Id(r) = self.wit.dealias(*inner)
+                    && matches!(self.wit.resolve.types[r].kind, TypeDefKind::Resource) && self.resource_dir(r) == Dir::Export {
                         writeln!(s, "pub type {rname}Borrow<'a> = {}Borrow<'a>;", self.owned(iface, *inner)).unwrap();
                     }
-                }
             }
             TypeDefKind::Record(r) => {
                 writeln!(s, "{}\npub struct {rname} {{", self.derives(ty, &["Debug"])).unwrap();
@@ -685,12 +680,11 @@ impl {RT}::lift::LiftResult for {rname} {{ unsafe fn lift_result(a: u32) -> ::co
         }
         writeln!(s, "impl {rname} {{").unwrap();
         for slot in &slots {
-            if let Some(f) = slot.func() {
-                if resource_of_func(f) == Some(tid) {
+            if let Some(f) = slot.func()
+                && resource_of_func(f) == Some(tid) {
                     s.push_str(&docs(&f.docs, "    "));
                     s.push_str(&self.import_fn(iface, slot, f, "    "));
                 }
-            }
         }
         writeln!(s, "}}").unwrap();
     }
@@ -774,12 +768,11 @@ impl {RT}::lift::LiftResult for {rname} {{ unsafe fn lift_result(a: u32) -> ::co
             writeln!(s, "    type {r}: Guest{r};").unwrap();
         }
         for slot in slots {
-            if let Some(f) = slot.func() {
-                if resource_of_func(f).is_none() {
+            if let Some(f) = slot.func()
+                && resource_of_func(f).is_none() {
                     s.push_str(&docs(&f.docs, "    "));
                     writeln!(s, "    fn {}({}) -> {};", rs_ident(&f.name), self.export_params(iface, f, false).join(", "), self.ret(iface, f)).unwrap();
                 }
-            }
         }
         writeln!(s, "}}").unwrap();
         for (tid, r) in &resources {
