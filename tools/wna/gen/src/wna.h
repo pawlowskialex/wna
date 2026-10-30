@@ -101,6 +101,13 @@ static inline const wna_alloc *wna_libc_alloc(void) {
 
 static inline void wna_libc_free(void *p) { free(p); }
 
+/* The app's composition root (`wna::compose!`), called once by a shell.
+ * `shell`: the shell world's exports in declaration order; `out`: receives
+ * its imports in declaration order. */
+int32_t wna_compose(const wna_iface *shell, uint32_t n_shell, wna_iface *out, uint32_t n_out);
+/* Why `wna_compose` failed on this thread. */
+void wna_compose_error(wna_string *msg);
+
 #ifdef __cplusplus
 }
 #endif

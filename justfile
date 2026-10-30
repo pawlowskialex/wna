@@ -40,3 +40,23 @@ wasm-test-server: (component "wna-test-rust-server" "out/wasm/wna-test-rust-serv
 
 # Every feature as a component.
 features: (component "smart-reminders" "out/wasm/smart-reminders.wasm")
+
+swift_flags := "-swift-version 5 -O"
+
+# Builds a Swift library module from sources (static).
+_swift-module name out +srcs:
+    swiftc {{swift_flags}} -parse-as-library -emit-library -static -module-name {{name}} -I out/swift/conformance/CWna/include -I {{out}} -emit-module -emit-module-path {{out}}/{{name}}.swiftmodule -o {{out}}/lib{{name}}.a {{srcs}}
+
+# Swift ↔ Rust conformance on this machine (macOS or Linux).
+swift-test:
+    cargo build -q -p wna-test-fixture
+    cargo run -q -p wna-gen -- swift --wit wit --world wna:test/server --out out/swift/conformance
+    cargo run -q -p wna-gen -- swift --wit wit --world wna:test/client --out out/swift/conformance
+    mkdir -p out/swift/build
+    just _swift-module Wna out/swift/build out/swift/conformance/Wna/WnaRuntime.swift
+    just _swift-module ConfServer out/swift/build out/swift/conformance/Server/ServerWorld.swift tests/conformance/swift/Server.swift
+    just _swift-module ConfClient out/swift/build out/swift/conformance/Client/ClientWorld.swift tests/conformance/swift/Client.swift
+    swiftc {{swift_flags}} -I out/swift/conformance/CWna/include -I tests/conformance/swift/include -I out/swift/build \
+        tests/conformance/swift/main.swift -L out/swift/build -lWna -lConfServer -lConfClient \
+        -L target/debug -lwna_test_fixture -o out/swift/build/conformance
+    out/swift/build/conformance

@@ -1,0 +1,15 @@
+[package]
+name = "wna-test-fixture"
+description = "C entry points to the Rust conformance components, for the Swift and Kotlin suites"
+edition.workspace = true
+version.workspace = true
+publish = false
+
+[lib]
+crate-type = ["staticlib", "cdylib"]
+
+[dependencies]
+wna.workspace = true
+wna-test-rust-server = { path = "../../rust-server" }
+wna-test-rust-sink = { path = "../../rust-sink" }
+wna-test-rust-client = { path = "../../rust-client" }

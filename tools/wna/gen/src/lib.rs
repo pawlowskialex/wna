@@ -3,6 +3,7 @@
 
 pub mod c;
 pub mod rust;
+pub mod swift;
 
 use std::collections::BTreeMap;
 use std::path::Path;

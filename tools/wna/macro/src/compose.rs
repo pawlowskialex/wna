@@ -250,6 +250,15 @@ pub fn expand(path: &str) -> Result<TokenStream> {
             Ok(APP.get_or_init(|| app))
         }
 
+        /// Why `wna_compose` failed on this thread.
+        ///
+        /// # Safety
+        /// `msg` must be writable.
+        #[unsafe(no_mangle)]
+        pub unsafe extern "C" fn wna_compose_error(msg: *mut ::wna::abi::WnaList<u8>) {
+            unsafe { ::wna::trap::last_trap(::core::ptr::null_mut(), msg) }
+        }
+
         /// C entry point for shells: `shell` holds the shell world's exports
         /// in declaration order; `out` receives its imports.
         ///

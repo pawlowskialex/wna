@@ -8,7 +8,7 @@ const USAGE: &str = "usage: wna-gen <c|rust|swift|kotlin> --wit <dir> [--world <
 fn main() -> Result<()> {
     let mut args = std::env::args().skip(1);
     let backend = args.next().context(USAGE)?;
-    let (mut wit, mut out, mut worlds, mut ifaces, mut name) = (None, None, vec![], vec![], None);
+    let (mut wit, mut out, mut worlds, mut ifaces, mut name, mut compose) = (None, None, vec![], vec![], None, false);
     while let Some(a) = args.next() {
         let mut val = || args.next().with_context(|| format!("{a} needs a value"));
         match a.as_str() {
@@ -17,6 +17,7 @@ fn main() -> Result<()> {
             "--world" => worlds.push(val()?),
             "--iface" => ifaces.push(val()?),
             "--name" => name = Some(val()?),
+            "--compose" => compose = true,
             _ => bail!("unknown argument {a}\n{USAGE}"),
         }
     }
@@ -39,6 +40,10 @@ fn main() -> Result<()> {
     let mut files = Files::new();
     match backend.as_str() {
         "c" => c::generate(&wit, &selected, &mut files),
+        "swift" => {
+            let [w] = worlds.as_slice() else { bail!("swift needs exactly one --world") };
+            swift::generate(&wit, wit.world(w)?, &swift::Opts { compose: compose }, &mut files)?;
+        }
         "rust" => {
             let [w] = worlds.as_slice() else { bail!("rust needs exactly one --world") };
             let opts = rust::Opts { name: name.clone().unwrap_or_else(|| "component".into()), additional_derives: vec![] };

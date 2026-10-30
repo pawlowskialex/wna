@@ -984,11 +984,7 @@ pub mod __wna_world {{
     }}
 
     unsafe extern \"C\" fn __get_export<T{bound}>(inst: *mut ::core::ffi::c_void, iface: *const ::core::ffi::c_char, out: *mut {RT}::abi::Iface) -> i32 {{
-        let Ok(req) = unsafe {{ ::core::ffi::CStr::from_ptr(iface) }}.to_str() else {{ return {RT}::abi::TRAP_INVALID }};
-        #[allow(unreachable_code)]
-        let table: *const ::core::ffi::c_void = {} {{ return {RT}::abi::TRAP_UNAVAILABLE }};
-        unsafe {{ *out = {RT}::abi::Iface {{ table, inst }} }};
-        {RT}::abi::OK
+{}
     }}
 
     unsafe extern \"C\" fn __destroy(_inst: *mut ::core::ffi::c_void) -> i32 {{ {RT}::abi::OK }}
@@ -1001,11 +997,21 @@ pub mod __wna_world {{
             cstrs(&exports),
             imports.len(),
             exports.len(),
-            self.exports
-                .iter()
-                .enumerate()
-                .map(|(n, &i)| format!("if {RT}::component::iface_matches(req, EXPORTS[{n}]) {{ super::{}::__table::<T>() as *const _ as *const ::core::ffi::c_void }} else ", self.module_path(i).join("::")))
-                .collect::<String>(),
+            if self.exports.is_empty() {
+                format!("        let _ = (inst, iface, out);\n        {RT}::abi::TRAP_UNAVAILABLE")
+            } else {
+                format!(
+                    "        let Ok(req) = unsafe {{ ::core::ffi::CStr::from_ptr(iface) }}.to_str() else {{ return {RT}::abi::TRAP_INVALID }};
+        let table: *const ::core::ffi::c_void = {} {{ return {RT}::abi::TRAP_UNAVAILABLE }};
+        unsafe {{ *out = {RT}::abi::Iface {{ table, inst }} }};
+        {RT}::abi::OK",
+                    self.exports
+                        .iter()
+                        .enumerate()
+                        .map(|(n, &i)| format!("if {RT}::component::iface_matches(req, EXPORTS[{n}]) {{ super::{}::__table::<T>() as *const _ as *const ::core::ffi::c_void }} else ", self.module_path(i).join("::")))
+                        .collect::<String>()
+                )
+            },
         )
         .unwrap();
         let _ = w;
