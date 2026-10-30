@@ -212,11 +212,10 @@ impl FeatureHost {
                 Err(e) => return Err(anyhow::Error::from(e)).context("precompiled artifact is incompatible with this runtime"),
             }
         }
-        if cfg!(feature = "cranelift") {
-            Component::new(&self.engine, &pkg.component).map_err(anyhow::Error::from).context("compiling feature")
-        } else {
-            bail!("package has no precompiled `{key}` artifact and this build cannot compile Wasm")
-        }
+        #[cfg(feature = "cranelift")]
+        return Component::new(&self.engine, &pkg.component).map_err(anyhow::Error::from).context("compiling feature");
+        #[cfg(not(feature = "cranelift"))]
+        bail!("package has no precompiled `{key}` artifact and this build cannot compile Wasm")
     }
 
     /// Instantiates a loaded package and points the slot's tables at it.

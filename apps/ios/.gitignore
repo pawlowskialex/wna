@@ -1,0 +1,5 @@
+Generated/
+Native/
+Tests/AcmeShellTests/Fixtures/*.wnapkg
+.build/
+.swiftpm/

@@ -60,3 +60,26 @@ swift-test:
         tests/conformance/swift/main.swift -L out/swift/build -lWna -lConfServer -lConfClient \
         -L target/debug -lwna_test_fixture -o out/swift/build/conformance
     out/swift/build/conformance
+
+ios_targets := "aarch64-apple-ios aarch64-apple-ios-sim"
+
+# A signed package of the smart-reminders feature, precompiled for Pulley (iOS).
+feature-package out: features _pkg-tool
+    {{pkg}} build --component out/wasm/smart-reminders.wasm --wit wit --world acme:feature/rules-engine \
+        --name smart-reminders --version 1.1.0 --min-app 1.0.0 --key keys/dev-signing.key --precompile pulley64 -o {{out}}
+
+# Bindings + XCFramework for the iOS/macOS shell package (apps/ios).
+ios-gen: (feature-package "apps/ios/Tests/AcmeShellTests/Fixtures/smart-reminders.wnapkg")
+    rm -rf apps/ios/Generated && cargo run -q -p wna-gen -- swift --wit wit --world acme:app/shell --compose --out apps/ios/Generated
+    for t in {{ios_targets}}; do cargo rustc -q -p acme-app --lib --crate-type staticlib --target $t --no-default-features --release; done
+    cargo rustc -q -p acme-app --lib --crate-type staticlib --release
+    rm -rf apps/ios/Native && xcodebuild -create-xcframework \
+        -library target/release/libacme_app.a \
+        -library target/aarch64-apple-ios/release/libacme_app.a \
+        -library target/aarch64-apple-ios-sim/release/libacme_app.a \
+        -output apps/ios/Native/AcmeNative.xcframework > /dev/null
+
+# The iOS shell's tests on macOS (Cranelift) and in the iOS Simulator (Pulley).
+ios-test sim="iPhone 17 Pro": ios-gen
+    cd apps/ios && swift test
+    cd apps/ios && xcodebuild test -scheme AcmeShell -destination "platform=iOS Simulator,name={{sim}}" -quiet
