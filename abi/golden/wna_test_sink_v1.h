@@ -29,10 +29,10 @@ typedef uint32_t wna_test_sink_v1_listener_count_ret;
 typedef struct wna_test_sink_v1 {
   wna_table_header hdr;
   /* since 1.0.0 */
-  int32_t (*listener_new)(void *inst, const void *args, wna_test_sink_v1_listener_new_ret *ret, const wna_alloc *alloc);
-  int32_t (*listener_on_event)(void *inst, const wna_test_sink_v1_listener_on_event_args *args, void *ret, const wna_alloc *alloc);
-  int32_t (*listener_count)(void *inst, const wna_test_sink_v1_listener_count_args *args, wna_test_sink_v1_listener_count_ret *ret, const wna_alloc *alloc);
-  int32_t (*listener_drop)(void *inst, const uint32_t *args, void *ret, const wna_alloc *alloc);
+  wna_fn listener_new; /* (const void *args, wna_test_sink_v1_listener_new_ret *ret) */
+  wna_fn listener_on_event; /* (const wna_test_sink_v1_listener_on_event_args *args, void *ret) */
+  wna_fn listener_count; /* (const wna_test_sink_v1_listener_count_args *args, wna_test_sink_v1_listener_count_ret *ret) */
+  wna_fn listener_drop; /* (const uint32_t *args, void *ret) */
 } wna_test_sink_v1;
 _Static_assert(sizeof(wna_test_sink_v1) == 48, "table size");
 _Static_assert(offsetof(wna_test_sink_v1, listener_new) == 16, "slot offset");

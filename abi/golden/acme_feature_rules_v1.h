@@ -56,8 +56,8 @@ typedef wna_string acme_feature_rules_v1_describe_ret;
 typedef struct acme_feature_rules_v1 {
   wna_table_header hdr;
   /* since 1.0.0 */
-  int32_t (*evaluate)(void *inst, const acme_feature_rules_v1_evaluate_args *args, acme_feature_rules_v1_evaluate_ret *ret, const wna_alloc *alloc);
-  int32_t (*describe)(void *inst, const void *args, acme_feature_rules_v1_describe_ret *ret, const wna_alloc *alloc);
+  wna_fn evaluate; /* (const acme_feature_rules_v1_evaluate_args *args, acme_feature_rules_v1_evaluate_ret *ret) */
+  wna_fn describe; /* (const void *args, acme_feature_rules_v1_describe_ret *ret) */
 } acme_feature_rules_v1;
 _Static_assert(sizeof(acme_feature_rules_v1) == 32, "table size");
 _Static_assert(offsetof(acme_feature_rules_v1, evaluate) == 16, "slot offset");

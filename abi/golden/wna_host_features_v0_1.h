@@ -73,9 +73,9 @@ typedef wna_host_features_v0_1_list_slot_status wna_host_features_v0_1_status_re
 typedef struct wna_host_features_v0_1 {
   wna_table_header hdr;
   /* since 0.1.0 */
-  int32_t (*install)(void *inst, const wna_host_features_v0_1_install_args *args, wna_host_features_v0_1_install_ret *ret, const wna_alloc *alloc);
-  int32_t (*rollback)(void *inst, const wna_host_features_v0_1_rollback_args *args, wna_host_features_v0_1_rollback_ret *ret, const wna_alloc *alloc);
-  int32_t (*status)(void *inst, const void *args, wna_host_features_v0_1_status_ret *ret, const wna_alloc *alloc);
+  wna_fn install; /* (const wna_host_features_v0_1_install_args *args, wna_host_features_v0_1_install_ret *ret) */
+  wna_fn rollback; /* (const wna_host_features_v0_1_rollback_args *args, wna_host_features_v0_1_rollback_ret *ret) */
+  wna_fn status; /* (const void *args, wna_host_features_v0_1_status_ret *ret) */
 } wna_host_features_v0_1;
 _Static_assert(sizeof(wna_host_features_v0_1) == 40, "table size");
 _Static_assert(offsetof(wna_host_features_v0_1, install) == 16, "slot offset");

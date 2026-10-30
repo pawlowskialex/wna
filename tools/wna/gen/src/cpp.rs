@@ -625,7 +625,11 @@ class {n} {{
                 ),
                 None => ("const uint32_t*".to_string(), "void*".to_string()),
             };
-            writeln!(s, "inline int32_t {fname}(void* inst, {args_t} args, {ret_t} ret, const wna_alloc* alloc) noexcept {{\n  return ::wna::guard(inst, alloc, [&]([[maybe_unused]] ::wna::cx& cx) {{\n    auto* box = static_cast<Box*>(inst);\n    (void)box; (void)args; (void)ret;").unwrap();
+            writeln!(
+                s,
+                "inline int32_t {fname}(void* inst, const void* args_, void* ret_, const wna_alloc* alloc) noexcept {{\n  [[maybe_unused]] auto args = static_cast<{args_t}>(args_);\n  [[maybe_unused]] auto ret = static_cast<{ret_t}>(ret_);\n  return ::wna::guard(inst, alloc, [&]([[maybe_unused]] ::wna::cx& cx) {{\n    [[maybe_unused]] auto* box = static_cast<Box*>(inst);"
+            )
+            .unwrap();
             match slot.kind {
                 SlotKind::Drop(r) => writeln!(s, "    box->res{}.remove(*args);", self.res_index(r)).unwrap(),
                 SlotKind::Func(f) => s.push_str(&self.export_body(iface, f)),

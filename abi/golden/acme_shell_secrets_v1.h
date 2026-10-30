@@ -33,8 +33,8 @@ _Static_assert(sizeof(acme_shell_secrets_v1_set_args) == 32 && _Alignof(acme_she
 typedef struct acme_shell_secrets_v1 {
   wna_table_header hdr;
   /* since 1.0.0 */
-  int32_t (*get)(void *inst, const acme_shell_secrets_v1_get_args *args, acme_shell_secrets_v1_get_ret *ret, const wna_alloc *alloc);
-  int32_t (*set)(void *inst, const acme_shell_secrets_v1_set_args *args, void *ret, const wna_alloc *alloc);
+  wna_fn get; /* (const acme_shell_secrets_v1_get_args *args, acme_shell_secrets_v1_get_ret *ret) */
+  wna_fn set; /* (const acme_shell_secrets_v1_set_args *args, void *ret) */
 } acme_shell_secrets_v1;
 _Static_assert(sizeof(acme_shell_secrets_v1) == 32, "table size");
 _Static_assert(offsetof(acme_shell_secrets_v1, get) == 16, "slot offset");

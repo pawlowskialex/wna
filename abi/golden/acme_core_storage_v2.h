@@ -88,12 +88,12 @@ typedef uint32_t acme_core_storage_v2_count_ret;
 typedef struct acme_core_storage_v2 {
   wna_table_header hdr;
   /* since 2.0.0 */
-  int32_t (*get)(void *inst, const acme_core_storage_v2_get_args *args, acme_core_storage_v2_get_ret *ret, const wna_alloc *alloc);
-  int32_t (*put)(void *inst, const acme_core_storage_v2_put_args *args, acme_core_storage_v2_put_ret *ret, const wna_alloc *alloc);
-  int32_t (*delete_)(void *inst, const acme_core_storage_v2_delete_args *args, acme_core_storage_v2_delete_ret *ret, const wna_alloc *alloc);
-  int32_t (*scan)(void *inst, const acme_core_storage_v2_scan_args *args, acme_core_storage_v2_scan_ret *ret, const wna_alloc *alloc);
+  wna_fn get; /* (const acme_core_storage_v2_get_args *args, acme_core_storage_v2_get_ret *ret) */
+  wna_fn put; /* (const acme_core_storage_v2_put_args *args, acme_core_storage_v2_put_ret *ret) */
+  wna_fn delete_; /* (const acme_core_storage_v2_delete_args *args, acme_core_storage_v2_delete_ret *ret) */
+  wna_fn scan; /* (const acme_core_storage_v2_scan_args *args, acme_core_storage_v2_scan_ret *ret) */
   /* since 2.1.0 */
-  int32_t (*count)(void *inst, const acme_core_storage_v2_count_args *args, acme_core_storage_v2_count_ret *ret, const wna_alloc *alloc);
+  wna_fn count; /* (const acme_core_storage_v2_count_args *args, acme_core_storage_v2_count_ret *ret) */
 } acme_core_storage_v2;
 _Static_assert(sizeof(acme_core_storage_v2) == 56, "table size");
 _Static_assert(offsetof(acme_core_storage_v2, get) == 16, "slot offset");

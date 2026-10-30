@@ -654,8 +654,16 @@ impl<'a> Gen<'a> {
             let fname = field(&slot.name);
             writeln!(s, "        t.{fname} = {{ inst, args, ret, alloc in wnaExport(inst, alloc) {{ box, cx in").unwrap();
             match slot.kind {
-                SlotKind::Drop(r) => writeln!(s, "            try box.resources[{}].remove(args!.pointee)", self.res_index(r)).unwrap(),
-                SlotKind::Func(f) => s.push_str(&self.export_body(iface, f)),
+                SlotKind::Drop(r) => writeln!(s, "            try box.resources[{}].remove(args!.load(as: UInt32.self))", self.res_index(r)).unwrap(),
+                SlotKind::Func(f) => {
+                    if !f.params.is_empty() {
+                        writeln!(s, "            let args = args!.assumingMemoryBound(to: {prefix}_{}_args.self)", slot.name).unwrap();
+                    }
+                    if f.result.is_some() {
+                        writeln!(s, "            let ret = ret!.assumingMemoryBound(to: {prefix}_{}_ret.self)", slot.name).unwrap();
+                    }
+                    s.push_str(&self.export_body(iface, f))
+                }
             }
             writeln!(s, "        }} }}").unwrap();
         }
@@ -675,7 +683,7 @@ impl<'a> Gen<'a> {
         let mut b = String::new();
         writeln!(b, "            let impl = box.impl as! any {ns}.Exports").unwrap();
         if !f.params.is_empty() {
-            writeln!(b, "            let a = args!.pointee").unwrap();
+            writeln!(b, "            let a = args.pointee").unwrap();
         }
         let is_method = matches!(f.kind, FunctionKind::Method(_));
         let mut call_args = Vec::new();
@@ -698,7 +706,7 @@ impl<'a> Gen<'a> {
             (None, _) => writeln!(b, "            try {call}").unwrap(),
             (Some(_), _) if matches!(f.kind, FunctionKind::Constructor(_)) => {
                 let r = resource_of_func(f).unwrap();
-                writeln!(b, "            ret!.pointee = box.resources[{}].insert(try {call})", self.res_index(r)).unwrap();
+                writeln!(b, "            ret.pointee = box.resources[{}].insert(try {call})", self.res_index(r)).unwrap();
             }
             (Some(_), Some(err)) => {
                 let ok = self.result_ok(f);
@@ -721,11 +729,11 @@ impl<'a> Gen<'a> {
                     }
                     None => format!("catch is {ename} {{ out.is_err = 1 }}"),
                 };
-                writeln!(b, "            var out = ret!.pointee\n            do {{ {ok_store} }} {err_store}\n            ret!.pointee = out").unwrap();
+                writeln!(b, "            var out = ret.pointee\n            do {{ {ok_store} }} {err_store}\n            ret.pointee = out").unwrap();
             }
             (Some(r), None) => {
                 let e = self.lower(iface, r, "v");
-                writeln!(b, "            let v = try {call}\n            ret!.pointee = {e}").unwrap();
+                writeln!(b, "            let v = try {call}\n            ret.pointee = {e}").unwrap();
             }
         }
         b

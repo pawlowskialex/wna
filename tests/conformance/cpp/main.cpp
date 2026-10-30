@@ -1,6 +1,7 @@
 // C++ <-> Rust conformance, both directions, plus C++ <-> C++.
 #include <cstdio>
 #include <exception>
+#include <stdexcept>
 #include <string>
 
 #include "wna.h"

@@ -126,7 +126,10 @@ fn interface_header(wit: &Wit, iface: InterfaceId) -> String {
             ),
             None => ("const uint32_t *".to_string(), "void *".to_string()),
         };
-        writeln!(s, "  int32_t (*{})(void *inst, {args}args, {ret}ret, const wna_alloc *alloc);", field(&slot.name)).unwrap();
+        // Every slot has the one `wna_fn` type (calling through any other
+        // pointer type would be undefined behavior); the comment gives the
+        // types `args`/`ret` point to.
+        writeln!(s, "  wna_fn {}; /* ({args}args, {ret}ret) */", field(&slot.name)).unwrap();
     }
     writeln!(s, "}} {prefix};").unwrap();
     writeln!(s, "_Static_assert(sizeof({prefix}) == {}, \"table size\");", table_size(&slots)).unwrap();

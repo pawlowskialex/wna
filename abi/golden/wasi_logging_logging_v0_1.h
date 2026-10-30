@@ -31,7 +31,7 @@ _Static_assert(sizeof(wasi_logging_logging_v0_1_log_args) == 40 && _Alignof(wasi
 typedef struct wasi_logging_logging_v0_1 {
   wna_table_header hdr;
   /* since 0.1.0 */
-  int32_t (*log)(void *inst, const wasi_logging_logging_v0_1_log_args *args, void *ret, const wna_alloc *alloc);
+  wna_fn log; /* (const wasi_logging_logging_v0_1_log_args *args, void *ret) */
 } wasi_logging_logging_v0_1;
 _Static_assert(sizeof(wasi_logging_logging_v0_1) == 24, "table size");
 _Static_assert(offsetof(wasi_logging_logging_v0_1, log) == 16, "slot offset");

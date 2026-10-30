@@ -22,8 +22,8 @@ test-linux: wasm-test-server features
 c-headers:
     cargo run -q -p wna-gen -- c --wit wit --out out/c
     for h in out/c/*.h; do echo "#include \"$(basename $h)\""; done > out/c/all.c
-    clang -std=c11 -Wall -Wextra -Werror -fsyntax-only -Iout/c out/c/all.c
-    clang++ -std=c++20 -Wall -Wextra -Werror -fsyntax-only -Iout/c -x c++ out/c/all.c
+    clang -std=c11 -Wall -Wextra -Werror -Wno-unused-command-line-argument -fsyntax-only -Iout/c out/c/all.c
+    clang++ -std=c++20 -Wall -Wextra -Werror -Wno-unused-command-line-argument -fsyntax-only -Iout/c -x c++ out/c/all.c
 
 # Golden ABI: fails when a generated header changes. Bless with `just golden-bless`.
 golden:
@@ -93,7 +93,7 @@ ios-test sim="iPhone 17 Pro": ios-gen
 # System libraries a Rust staticlib needs when linked by a C/C++ toolchain.
 rust_sys_libs := if os() == "linux" { "-lpthread -ldl -lm" } else { "" }
 
-cxx := "clang++ -std=c++20 -g -O1 -Wall -Wextra -Werror -fsanitize=address,undefined -fno-omit-frame-pointer"
+cxx := "clang++ -std=c++20 -g -O1 -Wall -Wextra -Werror -Wno-unused-command-line-argument -fsanitize=address,undefined -fno-sanitize-recover=all -fno-omit-frame-pointer"
 
 # C++ <-> Rust conformance under ASan and UBSan.
 cpp-test:

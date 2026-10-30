@@ -27,7 +27,7 @@ typedef acme_shell_config_v1_option_string acme_shell_config_v1_get_ret;
 typedef struct acme_shell_config_v1 {
   wna_table_header hdr;
   /* since 1.0.0 */
-  int32_t (*get)(void *inst, const acme_shell_config_v1_get_args *args, acme_shell_config_v1_get_ret *ret, const wna_alloc *alloc);
+  wna_fn get; /* (const acme_shell_config_v1_get_args *args, acme_shell_config_v1_get_ret *ret) */
 } acme_shell_config_v1;
 _Static_assert(sizeof(acme_shell_config_v1) == 24, "table size");
 _Static_assert(offsetof(acme_shell_config_v1, get) == 16, "slot offset");

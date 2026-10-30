@@ -330,29 +330,29 @@ typedef uint32_t wna_test_types_v1_emit_ret;
 typedef struct wna_test_types_v1 {
   wna_table_header hdr;
   /* since 1.0.0 */
-  int32_t (*echo_scalars)(void *inst, const wna_test_types_v1_echo_scalars_args *args, wna_test_types_v1_echo_scalars_ret *ret, const wna_alloc *alloc);
-  int32_t (*echo_string)(void *inst, const wna_test_types_v1_echo_string_args *args, wna_test_types_v1_echo_string_ret *ret, const wna_alloc *alloc);
-  int32_t (*echo_bytes)(void *inst, const wna_test_types_v1_echo_bytes_args *args, wna_test_types_v1_echo_bytes_ret *ret, const wna_alloc *alloc);
-  int32_t (*echo_bag)(void *inst, const wna_test_types_v1_echo_bag_args *args, wna_test_types_v1_echo_bag_ret *ret, const wna_alloc *alloc);
-  int32_t (*echo_bags)(void *inst, const wna_test_types_v1_echo_bags_args *args, wna_test_types_v1_echo_bags_ret *ret, const wna_alloc *alloc);
-  int32_t (*echo_shape)(void *inst, const wna_test_types_v1_echo_shape_args *args, wna_test_types_v1_echo_shape_ret *ret, const wna_alloc *alloc);
-  int32_t (*echo_options)(void *inst, const wna_test_types_v1_echo_options_args *args, wna_test_types_v1_echo_options_ret *ret, const wna_alloc *alloc);
-  int32_t (*echo_flags)(void *inst, const wna_test_types_v1_echo_flags_args *args, wna_test_types_v1_echo_flags_ret *ret, const wna_alloc *alloc);
-  int32_t (*check)(void *inst, const wna_test_types_v1_check_args *args, wna_test_types_v1_check_ret *ret, const wna_alloc *alloc);
-  int32_t (*check_unit)(void *inst, const wna_test_types_v1_check_unit_args *args, wna_test_types_v1_check_unit_ret *ret, const wna_alloc *alloc);
-  int32_t (*no_result)(void *inst, const wna_test_types_v1_no_result_args *args, void *ret, const wna_alloc *alloc);
-  int32_t (*boom)(void *inst, const wna_test_types_v1_boom_args *args, wna_test_types_v1_boom_ret *ret, const wna_alloc *alloc);
-  int32_t (*sum)(void *inst, const wna_test_types_v1_sum_args *args, wna_test_types_v1_sum_ret *ret, const wna_alloc *alloc);
-  int32_t (*concat)(void *inst, const wna_test_types_v1_concat_args *args, wna_test_types_v1_concat_ret *ret, const wna_alloc *alloc);
-  int32_t (*counter_new)(void *inst, const wna_test_types_v1_counter_new_args *args, wna_test_types_v1_counter_new_ret *ret, const wna_alloc *alloc);
-  int32_t (*counter_add)(void *inst, const wna_test_types_v1_counter_add_args *args, wna_test_types_v1_counter_add_ret *ret, const wna_alloc *alloc);
-  int32_t (*counter_get)(void *inst, const wna_test_types_v1_counter_get_args *args, wna_test_types_v1_counter_get_ret *ret, const wna_alloc *alloc);
-  int32_t (*counter_merge)(void *inst, const wna_test_types_v1_counter_merge_args *args, void *ret, const wna_alloc *alloc);
-  int32_t (*counter_total)(void *inst, const void *args, wna_test_types_v1_counter_total_ret *ret, const wna_alloc *alloc);
-  int32_t (*make_counters)(void *inst, const wna_test_types_v1_make_counters_args *args, wna_test_types_v1_make_counters_ret *ret, const wna_alloc *alloc);
-  int32_t (*consume)(void *inst, const wna_test_types_v1_consume_args *args, wna_test_types_v1_consume_ret *ret, const wna_alloc *alloc);
-  int32_t (*emit)(void *inst, const wna_test_types_v1_emit_args *args, wna_test_types_v1_emit_ret *ret, const wna_alloc *alloc);
-  int32_t (*counter_drop)(void *inst, const uint32_t *args, void *ret, const wna_alloc *alloc);
+  wna_fn echo_scalars; /* (const wna_test_types_v1_echo_scalars_args *args, wna_test_types_v1_echo_scalars_ret *ret) */
+  wna_fn echo_string; /* (const wna_test_types_v1_echo_string_args *args, wna_test_types_v1_echo_string_ret *ret) */
+  wna_fn echo_bytes; /* (const wna_test_types_v1_echo_bytes_args *args, wna_test_types_v1_echo_bytes_ret *ret) */
+  wna_fn echo_bag; /* (const wna_test_types_v1_echo_bag_args *args, wna_test_types_v1_echo_bag_ret *ret) */
+  wna_fn echo_bags; /* (const wna_test_types_v1_echo_bags_args *args, wna_test_types_v1_echo_bags_ret *ret) */
+  wna_fn echo_shape; /* (const wna_test_types_v1_echo_shape_args *args, wna_test_types_v1_echo_shape_ret *ret) */
+  wna_fn echo_options; /* (const wna_test_types_v1_echo_options_args *args, wna_test_types_v1_echo_options_ret *ret) */
+  wna_fn echo_flags; /* (const wna_test_types_v1_echo_flags_args *args, wna_test_types_v1_echo_flags_ret *ret) */
+  wna_fn check; /* (const wna_test_types_v1_check_args *args, wna_test_types_v1_check_ret *ret) */
+  wna_fn check_unit; /* (const wna_test_types_v1_check_unit_args *args, wna_test_types_v1_check_unit_ret *ret) */
+  wna_fn no_result; /* (const wna_test_types_v1_no_result_args *args, void *ret) */
+  wna_fn boom; /* (const wna_test_types_v1_boom_args *args, wna_test_types_v1_boom_ret *ret) */
+  wna_fn sum; /* (const wna_test_types_v1_sum_args *args, wna_test_types_v1_sum_ret *ret) */
+  wna_fn concat; /* (const wna_test_types_v1_concat_args *args, wna_test_types_v1_concat_ret *ret) */
+  wna_fn counter_new; /* (const wna_test_types_v1_counter_new_args *args, wna_test_types_v1_counter_new_ret *ret) */
+  wna_fn counter_add; /* (const wna_test_types_v1_counter_add_args *args, wna_test_types_v1_counter_add_ret *ret) */
+  wna_fn counter_get; /* (const wna_test_types_v1_counter_get_args *args, wna_test_types_v1_counter_get_ret *ret) */
+  wna_fn counter_merge; /* (const wna_test_types_v1_counter_merge_args *args, void *ret) */
+  wna_fn counter_total; /* (const void *args, wna_test_types_v1_counter_total_ret *ret) */
+  wna_fn make_counters; /* (const wna_test_types_v1_make_counters_args *args, wna_test_types_v1_make_counters_ret *ret) */
+  wna_fn consume; /* (const wna_test_types_v1_consume_args *args, wna_test_types_v1_consume_ret *ret) */
+  wna_fn emit; /* (const wna_test_types_v1_emit_args *args, wna_test_types_v1_emit_ret *ret) */
+  wna_fn counter_drop; /* (const uint32_t *args, void *ret) */
 } wna_test_types_v1;
 _Static_assert(sizeof(wna_test_types_v1) == 200, "table size");
 _Static_assert(offsetof(wna_test_types_v1, echo_scalars) == 16, "slot offset");

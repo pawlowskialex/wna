@@ -42,8 +42,8 @@ _Static_assert(sizeof(acme_shell_notify_v1_cancel_args) == 16 && _Alignof(acme_s
 typedef struct acme_shell_notify_v1 {
   wna_table_header hdr;
   /* since 1.0.0 */
-  int32_t (*schedule)(void *inst, const acme_shell_notify_v1_schedule_args *args, acme_shell_notify_v1_schedule_ret *ret, const wna_alloc *alloc);
-  int32_t (*cancel)(void *inst, const acme_shell_notify_v1_cancel_args *args, void *ret, const wna_alloc *alloc);
+  wna_fn schedule; /* (const acme_shell_notify_v1_schedule_args *args, acme_shell_notify_v1_schedule_ret *ret) */
+  wna_fn cancel; /* (const acme_shell_notify_v1_cancel_args *args, void *ret) */
 } acme_shell_notify_v1;
 _Static_assert(sizeof(acme_shell_notify_v1) == 32, "table size");
 _Static_assert(offsetof(acme_shell_notify_v1, schedule) == 16, "slot offset");
