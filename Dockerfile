@@ -9,8 +9,9 @@ RUN printf 'experimental-features = nix-command flakes\nfilter-syscalls = false\
 
 WORKDIR /src
 COPY flake.nix flake.lock rust-toolchain.toml ./
-# Realize the dev shell (Rust, JDK, Kotlin, Swift, clang, wasm-tools, just).
-RUN nix develop -c true && nix-collect-garbage >/dev/null
+# Realize the dev shell (Rust, JDK, Kotlin, clang, wasm-tools, just); the
+# profile is a GC root, so garbage collection keeps it.
+RUN nix develop --profile /nix/var/nix/profiles/wna-dev -c true && nix-collect-garbage >/dev/null
 
 # Keep the cargo registry and build outputs in volumes in CI if you can.
 ENV CARGO_HOME=/cargo
