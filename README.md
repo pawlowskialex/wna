@@ -62,15 +62,18 @@ abi/golden/               checked-in generated headers: `just golden` fails on A
 **The binary contract** (`tools/wna/gen/src/wna.h`). Each component exports a
 single descriptor symbol. Each interface is reached through a function table
 obtained from an instance, so an import is a parameter supplied at
-composition, never a global symbol lookup. All table slots have the same C
-shape:
+composition, never a global symbol lookup. Every table slot has the same C
+type:
 
 ```c
-int32_t f(void *inst, const ARGS *args, RET *ret, const wna_alloc *alloc);
+typedef int32_t (*wna_fn)(void *inst, const void *args, void *ret, const wna_alloc *alloc);
 ```
 
-`ARGS` is a struct of the parameters (a method's `self` handle comes first),
-and `RET` is the result's layout. Values cross by copy. Resources cross as
+`args` points to a struct of the parameters (a method's `self` handle comes
+first), and `ret` to the result's layout. The headers give their types in a
+comment on each slot. Declaring every slot with the one type is what keeps
+generic callers free of undefined behaviour: UBSan's `-fsanitize=function`
+caught the earlier typed declarations. Values cross by copy. Resources cross as
 generation-checked `u32` handles into tables owned by their exporter. Every
 buffer is freed by the allocator that allocated it: parameters are views, and
 results are allocated through the caller's `alloc`. Boundaries never unwind:
