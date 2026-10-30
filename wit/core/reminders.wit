@@ -1,0 +1,20 @@
+package acme:core@2.1.0;
+
+/// What the shells call to drive the "smart reminders" flow. The core asks
+/// the feature host's rules engine what to schedule and hands the result to
+/// the shell's notifier.
+@since(version = 2.1.0)
+interface reminders {
+  use storage.{error};
+
+  record reminder {
+    id: string,
+    title: string,
+    due-ms: u64,
+  }
+
+  add: func(r: reminder) -> result<_, error>;
+  /// Runs the rules feature over stored reminders; returns how many
+  /// notifications were scheduled.
+  refresh: func(now-ms: u64) -> result<u32, string>;
+}

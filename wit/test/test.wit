@@ -1,0 +1,101 @@
+package wna:test@1.0.0;
+
+/// Every v0 type, edge values, resources, callbacks and traps. Each binding
+/// exports it and calls every other binding through it.
+interface types {
+  flags small { a, b, c }
+  flags wide {
+    f0, f1, f2, f3, f4, f5, f6, f7, f8, f9, f10, f11, f12, f13, f14, f15,
+    f16, f17, f18, f19, f20, f21, f22, f23, f24, f25, f26, f27, f28, f29, f30, f31,
+  }
+  enum color { red, green, blue }
+
+  record scalars {
+    b: bool,
+    u8v: u8, u16v: u16, u32v: u32, u64v: u64,
+    s8v: s8, s16v: s16, s32v: s32, s64v: s64,
+    f32v: f32, f64v: f64,
+    c: char,
+  }
+
+  variant shape {
+    circle(f64),
+    rect(tuple<f64, f64>),
+    label(string),
+    empty,
+  }
+
+  record bag {
+    name: string,
+    tags: list<string>,
+    shapes: list<shape>,
+    color: option<color>,
+    nested: option<option<u32>>,
+    pair: tuple<u8, string, f32>,
+    small: small,
+    wide: wide,
+    bytes: list<u8>,
+  }
+
+  variant failure {
+    bad-input(string),
+    too-big(u64),
+  }
+
+  echo-scalars: func(s: scalars) -> scalars;
+  echo-string: func(s: string) -> string;
+  echo-bytes: func(b: list<u8>) -> list<u8>;
+  echo-bag: func(b: bag) -> bag;
+  echo-bags: func(b: list<bag>) -> list<bag>;
+  echo-shape: func(s: shape) -> shape;
+  echo-options: func(a: option<string>, b: option<option<u32>>) -> tuple<option<string>, option<option<u32>>>;
+  echo-flags: func(a: small, b: wide) -> tuple<small, wide>;
+  /// `ok` when `n` is even, `err` otherwise.
+  check: func(n: u64) -> result<u64, failure>;
+  check-unit: func(fail: bool) -> result;
+  no-result: func(n: u32);
+  /// Traps (panics/throws) inside the exporter.
+  boom: func(msg: string) -> u32;
+  sum: func(xs: list<s64>) -> s64;
+  concat: func(xs: list<string>) -> string;
+
+  resource counter {
+    constructor(start: s64);
+    add: func(n: s64) -> s64;
+    get: func() -> s64;
+    /// Takes another counter by borrow.
+    merge: func(other: borrow<counter>);
+    total: static func() -> s64;
+  }
+  make-counters: func(n: u32) -> list<counter>;
+  consume: func(c: counter) -> s64;
+
+  /// Callbacks are resources exported by the caller.
+  use sink.{listener};
+  emit: func(to: borrow<listener>, events: list<string>) -> u32;
+}
+
+/// Exported by whoever calls `types`, so the exporter can call back.
+interface sink {
+  resource listener {
+    constructor();
+    on-event: func(e: string);
+    count: func() -> u32;
+  }
+}
+
+/// Exports the callback resource. Has no imports, so composition stays acyclic.
+world sink-provider {
+  export sink;
+}
+
+world server {
+  import sink;
+  export types;
+}
+
+/// The test driver: calls `types` and makes listeners to pass to it.
+world client {
+  import types;
+  import sink;
+}

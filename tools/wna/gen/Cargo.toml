@@ -1,0 +1,11 @@
+[package]
+name = "wna-gen"
+description = "Generates WNA bindings (C, Rust, Swift, Kotlin) from WIT"
+edition.workspace = true
+version.workspace = true
+license.workspace = true
+
+[dependencies]
+wna-abi.workspace = true
+anyhow.workspace = true
+heck.workspace = true

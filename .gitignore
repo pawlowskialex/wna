@@ -1,0 +1,7 @@
+/target
+/out
+.build/
+*.class
+.direnv/
+result
+/out

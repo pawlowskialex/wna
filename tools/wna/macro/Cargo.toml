@@ -1,0 +1,17 @@
+[package]
+name = "wna-macro"
+description = "wna::generate! — WNA bindings for Rust, wit-bindgen compatible"
+edition.workspace = true
+version.workspace = true
+license.workspace = true
+
+[lib]
+proc-macro = true
+
+[dependencies]
+wna-abi.workspace = true
+wna-gen.workspace = true
+proc-macro2.workspace = true
+syn.workspace = true
+quote.workspace = true
+anyhow.workspace = true

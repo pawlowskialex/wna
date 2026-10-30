@@ -1,0 +1,26 @@
+package acme:feature@1.2.0;
+
+/// Exported by a rules feature, imported by the core through the feature host.
+interface rules {
+  record fact {
+    key: string,
+    value: string,
+  }
+
+  record action {
+    kind: string,
+    target: string,
+    at-ms: option<u64>,
+  }
+
+  evaluate: func(facts: list<fact>) -> result<list<action>, string>;
+  describe: func() -> string;
+}
+
+/// The capabilities a downloaded rules feature gets: read/write storage and
+/// log. Nothing else exists for it.
+world rules-engine {
+  import acme:core/storage@2.1.0;
+  import wasi:logging/logging@0.1.0-draft;
+  export rules;
+}

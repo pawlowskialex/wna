@@ -1,0 +1,11 @@
+package acme:app@1.0.0;
+
+/// The native core, written in Rust.
+world core {
+  import acme:shell/secrets@1.0.0;
+  import acme:shell/notify@1.0.0;
+  import wasi:logging/logging@0.1.0-draft;
+  import acme:feature/rules@1.2.0;
+  export acme:core/storage@2.1.0;
+  export acme:core/reminders@2.1.0;
+}

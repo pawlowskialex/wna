@@ -1,0 +1,25 @@
+package acme:core@2.1.0;
+
+/// Key-value storage owned by the core. Shells and features read and write
+/// through this interface; nobody else touches the database.
+interface storage {
+  record item {
+    key: string,
+    value: list<u8>,
+    updated-ms: u64,
+  }
+
+  variant error {
+    not-found,
+    invalid-key(string),
+    io(string),
+  }
+
+  get: func(key: string) -> result<list<u8>, error>;
+  put: func(key: string, value: list<u8>) -> result<_, error>;
+  delete: func(key: string) -> result<_, error>;
+  scan: func(prefix: string) -> list<item>;
+
+  @since(version = 2.1.0)
+  count: func(prefix: string) -> u32;
+}

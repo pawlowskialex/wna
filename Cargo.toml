@@ -1,0 +1,44 @@
+[workspace]
+resolver = "3"
+members = [
+  "tools/wna/abi",
+  "tools/wna/gen",
+  "tools/wna/rt",
+  "tools/wna/macro",
+  "tests/conformance/rust-server",
+  "tests/conformance/rust-sink",
+  "tests/conformance/rust-client",
+
+
+
+
+]
+
+[workspace.package]
+edition = "2024"
+version = "0.1.0"
+license = "Apache-2.0"
+
+[workspace.dependencies]
+wna = { path = "tools/wna/rt" }
+wna-abi = { path = "tools/wna/abi" }
+wna-gen = { path = "tools/wna/gen" }
+wna-macro = { path = "tools/wna/macro" }
+wna-host = { path = "tools/wna/host" }
+wit-parser = "0.262"
+wit-bindgen = "0.63"
+wasmtime = { version = "50", default-features = false }
+anyhow = "1"
+heck = "0.5"
+proc-macro2 = "1"
+quote = "1"
+syn = { version = "2", features = ["full"] }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+toml = "1"
+sha2 = "0.10"
+ed25519-dalek = "2"
+arc-swap = "1"
+
+[profile.release]
+panic = "unwind"

@@ -1,0 +1,12 @@
+[package]
+name = "wna-test-rust-client"
+edition.workspace = true
+version.workspace = true
+publish = false
+
+[dependencies]
+wna.workspace = true
+
+[dev-dependencies]
+wna-test-rust-server = { path = "../rust-server" }
+wna-test-rust-sink = { path = "../rust-sink" }

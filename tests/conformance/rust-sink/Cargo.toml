@@ -1,0 +1,8 @@
+[package]
+name = "wna-test-rust-sink"
+edition.workspace = true
+version.workspace = true
+publish = false
+
+[dependencies]
+wna.workspace = true

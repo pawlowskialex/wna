@@ -1,0 +1,30 @@
+package acme:shell@1.0.0;
+
+/// Keychain on iOS, Keystore on Android.
+interface secrets {
+  get: func(name: string) -> option<string>;
+  set: func(name: string, value: string);
+}
+
+interface notify {
+  record notification {
+    id: string,
+    title: string,
+    body: string,
+    at-ms: u64,
+  }
+  schedule: func(n: notification) -> result<_, string>;
+  cancel: func(id: string);
+}
+
+interface config {
+  get: func(key: string) -> option<string>;
+}
+
+/// What a platform shell provides to the rest of the app.
+world host {
+  export secrets;
+  export notify;
+  export config;
+  export wasi:logging/logging@0.1.0-draft;
+}

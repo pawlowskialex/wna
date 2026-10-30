@@ -1,0 +1,12 @@
+[package]
+name = "wna-abi"
+description = "WIT loading and the WNA layout model shared by every generator and the Wasm bridge"
+edition.workspace = true
+version.workspace = true
+license.workspace = true
+
+[dependencies]
+wit-parser.workspace = true
+anyhow.workspace = true
+heck.workspace = true
+semver = "1"
