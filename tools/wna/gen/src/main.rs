@@ -3,12 +3,12 @@ use std::path::PathBuf;
 use wna_abi::Wit;
 use wna_gen::*;
 
-const USAGE: &str = "usage: wna-gen <c|rust|swift|kotlin> --wit <dir> [--world <ns:pkg/world>]... [--iface <ns:pkg/iface>]... [--name <component>] --out <dir>";
+const USAGE: &str = "usage: wna-gen <c|rust|swift|kotlin> --wit <dir> [--world <ns:pkg/world>]... [--iface <ns:pkg/iface>]... [--name <component>] [--package <kotlin prefix>] --out <dir>";
 
 fn main() -> Result<()> {
     let mut args = std::env::args().skip(1);
     let backend = args.next().context(USAGE)?;
-    let (mut wit, mut out, mut worlds, mut ifaces, mut name) = (None, None, vec![], vec![], None);
+    let (mut wit, mut out, mut worlds, mut ifaces, mut name, mut package) = (None, None, vec![], vec![], None, None);
     while let Some(a) = args.next() {
         let mut val = || args.next().with_context(|| format!("{a} needs a value"));
         match a.as_str() {
@@ -17,6 +17,7 @@ fn main() -> Result<()> {
             "--world" => worlds.push(val()?),
             "--iface" => ifaces.push(val()?),
             "--name" => name = Some(val()?),
+            "--package" => package = Some(val()?),
             _ => bail!("unknown argument {a}\n{USAGE}"),
         }
     }
@@ -43,6 +44,10 @@ fn main() -> Result<()> {
             let [w] = worlds.as_slice() else { bail!("rust needs exactly one --world") };
             let opts = rust::Opts { name: name.clone().unwrap_or_else(|| "component".into()), additional_derives: vec![] };
             files.insert("bindings.rs".into(), rust::generate(&wit, wit.world(w)?, &opts)?);
+        }
+        "kotlin" => {
+            let worlds = worlds.iter().map(|w| wit.world(w)).collect::<Result<Vec<_>>>()?;
+            kotlin::generate(&wit, &worlds, &kotlin::Opts { package }, &mut files)?;
         }
         _ => bail!("unknown backend {backend}\n{USAGE}"),
     }

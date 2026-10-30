@@ -2,6 +2,7 @@
 //! files; the CLI (`wna-gen`) and the `wna::generate!` macro drive them.
 
 pub mod c;
+pub mod kotlin;
 pub mod rust;
 
 use std::collections::BTreeMap;
