@@ -1,0 +1,11 @@
+[package]
+name = "acme-core"
+description = "The native core: storage (acme:app/core)"
+edition.workspace = true
+version.workspace = true
+publish = false
+
+[dependencies]
+wna.workspace = true
+serde.workspace = true
+serde_json.workspace = true

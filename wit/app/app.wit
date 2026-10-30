@@ -2,10 +2,19 @@ package acme:app@1.0.0;
 
 /// The native core, written in Rust.
 world core {
-  import acme:shell/secrets@1.0.0;
-  import acme:shell/notify@1.0.0;
+  import acme:shell/config@1.0.0;
   import wasi:logging/logging@0.1.0-draft;
-  import acme:feature/rules@1.2.0;
   export acme:core/storage@2.1.0;
-  export acme:core/reminders@2.1.0;
+}
+
+/// What a platform shell (Swift, Kotlin) sees: the services it provides to
+/// the app, and the app interfaces it calls.
+world shell {
+  export acme:shell/secrets@1.0.0;
+  export acme:shell/notify@1.0.0;
+  export acme:shell/config@1.0.0;
+  export wasi:logging/logging@0.1.0-draft;
+  import acme:core/storage@2.1.0;
+  import acme:feature/rules@1.2.0;
+  import wna:host/features@0.1.0;
 }

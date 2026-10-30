@@ -10,7 +10,7 @@ pub mod lift;
 pub mod trap;
 
 pub use trap::{Trap, catch};
-pub use wna_macro::generate;
+pub use wna_macro::{compose, generate};
 
 #[doc(hidden)]
 pub mod __private {

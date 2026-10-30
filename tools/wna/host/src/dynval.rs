@@ -3,7 +3,7 @@
 
 use crate::bridge::State;
 use wasmtime::error::Context;
-use wasmtime::{Result, bail, format_err as anyhow};
+use wasmtime::{Result, bail};
 use std::sync::Arc;
 use wasmtime::StoreContextMut;
 use wasmtime::component::{ResourceAny, ResourceDynamic, Val};

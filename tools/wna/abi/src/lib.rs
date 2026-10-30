@@ -57,28 +57,48 @@ impl Wit {
         if dirs.is_empty() {
             bail!("no .wit packages under {}", root.display());
         }
-        let mut resolve = Resolve::default();
-        let mut groups = Vec::new();
+        let mut pkgs = Vec::new();
         let mut sources = Vec::new();
         for d in &dirs {
+            let mut files = Vec::new();
             for e in std::fs::read_dir(d)? {
                 let p = e?.path();
                 if p.extension().is_some_and(|e| e == "wit") {
+                    files.push((p.display().to_string(), std::fs::read_to_string(&p)?));
                     sources.push(p);
                 }
             }
-            groups.push(
-                UnresolvedPackageGroup::parse_dir(d)
-                    .with_context(|| format!("parsing {}", d.display()))?,
-            );
+            files.sort();
+            pkgs.push((d.display().to_string(), files));
         }
-        let main = groups.remove(0);
-        resolve
-            .push_groups(main, groups)
-            .map_err(|e| anyhow::anyhow!("{e}"))
-            .with_context(|| format!("resolving WIT under {}", root.display()))?;
         sources.sort();
-        Ok(Wit { resolve, sources })
+        let mut wit = Wit::from_owned_sources(pkgs).with_context(|| format!("resolving WIT under {}", root.display()))?;
+        wit.sources = sources;
+        Ok(wit)
+    }
+
+    /// Builds from in-memory packages: `(package label, [(file, contents)])`,
+    /// as produced by `wna::include_wit!`.
+    pub fn from_sources(pkgs: &[(&str, &[(&str, &str)])]) -> Result<Wit> {
+        Self::from_owned_sources(pkgs.iter().map(|(d, fs)| (d.to_string(), fs.iter().map(|(f, c)| (f.to_string(), c.to_string())).collect())).collect())
+    }
+
+    fn from_owned_sources(pkgs: Vec<(String, Vec<(String, String)>)>) -> Result<Wit> {
+        let mut groups = Vec::new();
+        for (label, files) in pkgs {
+            let mut map = SourceMap::new();
+            for (f, c) in files {
+                map.push_str(&f, c);
+            }
+            groups.push(map.parse().map_err(|(_, e)| anyhow::anyhow!("{e}")).with_context(|| format!("parsing {label}"))?);
+        }
+        if groups.is_empty() {
+            bail!("no WIT packages");
+        }
+        let mut resolve = Resolve::default();
+        let main = groups.remove(0);
+        resolve.push_groups(main, groups).map_err(|e| anyhow::anyhow!("{e}"))?;
+        Ok(Wit { resolve, sources: Vec::new() })
     }
 
     /// Finds a world by `ns:pkg/world` (version optional) or bare name if unique.
@@ -649,4 +669,20 @@ pub fn package_dirs_in_order(root: &Path) -> Result<Vec<PathBuf>> {
         }
     }
     Ok(out)
+}
+
+/// Can an exporter at version `provided` serve an importer built against
+/// `required`? Same major (same minor for 0.x), and at least the required
+/// minor.patch. (The runtime crate `wna` carries the same rule.)
+pub fn version_compatible(required: &str, provided: &str) -> bool {
+    let parse = |v: &str| -> (u64, u64, u64) {
+        let core = v.split(['-', '+']).next().unwrap_or("");
+        let mut it = core.split('.').map(|x| x.parse().unwrap_or(0));
+        (it.next().unwrap_or(0), it.next().unwrap_or(0), it.next().unwrap_or(0))
+    };
+    let (r, p) = (parse(required), parse(provided));
+    if r.0 != p.0 || (r.0 == 0 && r.1 != p.1) {
+        return false;
+    }
+    (p.1, p.2) >= (r.1, r.2)
 }

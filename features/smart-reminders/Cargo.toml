@@ -1,0 +1,12 @@
+[package]
+name = "smart-reminders"
+description = "Feature: schedules notifications for stored reminders (acme:feature/rules-engine). Builds native and Wasm."
+edition.workspace = true
+version = "1.0.0"
+publish = false
+
+[lib]
+crate-type = ["rlib", "cdylib"]
+
+[dependencies]
+wna.workspace = true

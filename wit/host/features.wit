@@ -1,0 +1,33 @@
+package wna:host@0.1.0;
+
+/// Control of downloadable features, exported by the feature host to shells.
+/// The shell fetches package bytes (platform networking); the host verifies,
+/// checks compatibility, and swaps the feature in.
+interface features {
+  enum state {
+    /// The built-in implementation (or nothing) is serving the slot.
+    fallback,
+    /// A verified package is serving the slot.
+    active,
+    /// The installed package trapped repeatedly; the built-in took over.
+    failed,
+  }
+
+  record slot-status {
+    slot: string,
+    %world: string,
+    state: state,
+    version: option<string>,
+    message: option<string>,
+  }
+
+  /// Verifies and installs a package; returns its version.
+  install: func(slot: string, %package: list<u8>) -> result<string, string>;
+  /// Reinstates the previous package, or the built-in.
+  rollback: func(slot: string) -> result<_, string>;
+  status: func() -> list<slot-status>;
+}
+
+world control {
+  export features;
+}

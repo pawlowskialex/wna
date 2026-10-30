@@ -1,0 +1,21 @@
+[package]
+name = "acme-app"
+description = "The app's native half: every Rust component plus the composition root, as one library per platform"
+edition.workspace = true
+version.workspace = true
+publish = false
+
+[lib]
+# staticlib for iOS (linked into the app), cdylib for Android (libacme_app.so), rlib for tests.
+crate-type = ["staticlib", "cdylib", "rlib"]
+
+[dependencies]
+wna.workspace = true
+wna-host = { workspace = true, default-features = false }
+acme-core = { path = "../../core/rust" }
+smart-reminders = { path = "../../features/smart-reminders" }
+
+[features]
+default = ["cranelift"]
+# Off for iOS: features run precompiled Pulley bytecode.
+cranelift = ["wna-host/cranelift"]

@@ -17,10 +17,12 @@ interface rules {
   describe: func() -> string;
 }
 
-/// The capabilities a downloaded rules feature gets: read/write storage and
-/// log. Nothing else exists for it.
+/// The capabilities a downloaded rules feature gets: read/write storage,
+/// log, and (since 1.2) schedule notifications. Nothing else exists for it.
 world rules-engine {
   import acme:core/storage@2.1.0;
   import wasi:logging/logging@0.1.0-draft;
+  @since(version = 1.2.0)
+  import acme:shell/notify@1.0.0;
   export rules;
 }

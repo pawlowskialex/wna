@@ -1,0 +1,31 @@
+# The app's composition: which components exist and who supplies each import.
+# wna::compose! checks it at build time (wiring, versions, cycles).
+
+wit = "../wit"
+shell = "acme:app/shell"
+
+[instances.core]
+component = "acme:core-rs"
+rust = "acme-core"
+world = "acme:app/core"
+imports = { "acme:shell/config" = "shell", "wasi:logging/logging" = "shell" }
+
+# The built-in smart-reminders: serves the rules slot until a package arrives.
+[instances.reminders-native]
+component = "acme:smart-reminders"
+rust = "smart-reminders"
+world = "acme:feature/rules-engine"
+imports = { "acme:core/storage" = "core", "wasi:logging/logging" = "shell", "acme:shell/notify" = "shell" }
+
+[instances.features]
+feature-host = { app-version = "1.0.0", trusted-keys = ["2a101dfd39e6dfdb5d014e167a3d043935ed5173cfe6ab1c803c7771b91ec843"] }
+slots = [
+  { name = "rules", world = "acme:feature/rules-engine", fallback = "reminders-native", memory-mb = 32, fuel = 50_000_000 },
+]
+imports = { "acme:core/storage" = "core", "wasi:logging/logging" = "shell", "acme:shell/notify" = "shell" }
+
+# What the shells import, and from where.
+[exports]
+"acme:core/storage" = "core"
+"acme:feature/rules" = "features"
+"wna:host/features" = "features"

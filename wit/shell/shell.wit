@@ -20,11 +20,3 @@ interface notify {
 interface config {
   get: func(key: string) -> option<string>;
 }
-
-/// What a platform shell provides to the rest of the app.
-world host {
-  export secrets;
-  export notify;
-  export config;
-  export wasi:logging/logging@0.1.0-draft;
-}

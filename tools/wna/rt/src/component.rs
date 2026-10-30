@@ -15,14 +15,33 @@ use std::sync::Arc;
 pub type AnyArc = Arc<dyn Any + Send + Sync>;
 
 pub struct Instance {
-    pub imports: Box<[Iface]>,
+    imports: std::sync::OnceLock<Box<[Iface]>>,
     /// One table per resource type the component exports.
     pub resources: Box<[HandleTable<dyn Any + Send + Sync>]>,
 }
 
 impl Instance {
     pub fn new(imports: &[Iface], n_resources: usize) -> Self {
-        Instance { imports: imports.into(), resources: (0..n_resources).map(|_| HandleTable::new()).collect() }
+        let i = Self::unbound(n_resources);
+        i.bind(imports);
+        i
+    }
+
+    /// An instance whose imports arrive later: a shell's exports are needed
+    /// to compose the app that provides its imports.
+    pub fn unbound(n_resources: usize) -> Self {
+        Instance { imports: std::sync::OnceLock::new(), resources: (0..n_resources).map(|_| HandleTable::new()).collect() }
+    }
+
+    pub fn bind(&self, imports: &[Iface]) {
+        let _ = self.imports.set(imports.into());
+    }
+
+    pub fn import(&self, i: usize) -> Iface {
+        match self.imports.get() {
+            Some(imports) => imports[i],
+            None => std::panic::panic_any(crate::Trap::new(crate::abi::TRAP_UNAVAILABLE, "imports not bound yet")),
+        }
     }
 }
 
@@ -65,8 +84,14 @@ macro_rules! __component_context {
         }
 
         pub fn instantiate(imports: &[$crate::abi::Iface], n_resources: usize) -> *mut $crate::component::Instance {
+            let p = instantiate_unbound(n_resources);
+            unsafe { &*p }.bind(imports);
+            p
+        }
+
+        pub fn instantiate_unbound(n_resources: usize) -> *mut $crate::component::Instance {
             // Native instances live for the process: never freed.
-            let p = ::std::boxed::Box::into_raw(::std::boxed::Box::new($crate::component::Instance::new(imports, n_resources)));
+            let p = ::std::boxed::Box::into_raw(::std::boxed::Box::new($crate::component::Instance::unbound(n_resources)));
             let _ = DEFAULT.compare_exchange(
                 ::std::ptr::null_mut(),
                 p,
@@ -109,11 +134,8 @@ pub fn version_compatible(required: &str, provided: &str) -> bool {
         (it.next().unwrap_or(0), it.next().unwrap_or(0), it.next().unwrap_or(0))
     };
     let (r, p) = (parse(required), parse(provided));
-    if r.0 != p.0 {
+    if r.0 != p.0 || (r.0 == 0 && r.1 != p.1) {
         return false;
     }
-    if r.0 == 0 {
-        return r.1 == p.1;
-    }
-    (p.1, p.2) >= (r.1, r.2) || p.1 > r.1
+    (p.1, p.2) >= (r.1, r.2)
 }

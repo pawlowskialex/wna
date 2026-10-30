@@ -39,4 +39,4 @@ component crate out: _pkg-tool
 wasm-test-server: (component "wna-test-rust-server" "out/wasm/wna-test-rust-server.wasm")
 
 # Every feature as a component.
-features: (component "promo-rules" "out/wasm/promo-rules.wasm")
+features: (component "smart-reminders" "out/wasm/smart-reminders.wasm")

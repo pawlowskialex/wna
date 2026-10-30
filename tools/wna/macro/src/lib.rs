@@ -11,6 +11,8 @@
 //! });
 //! ```
 
+mod compose;
+
 use proc_macro::TokenStream;
 use proc_macro2::Span;
 use quote::quote;
@@ -109,4 +111,15 @@ fn expand(input: &Input) -> anyhow::Result<proc_macro2::TokenStream> {
             additional_derives: [#(#derives),*],
         });
     })
+}
+
+/// The composition root: `wna::compose!("wna.compose.toml");`. Validates the
+/// wiring at build time and defines `compose()` and the C `wna_compose`.
+#[proc_macro]
+pub fn compose(input: TokenStream) -> TokenStream {
+    let path = syn::parse_macro_input!(input as LitStr);
+    match compose::expand(&path.value()) {
+        Ok(t) => t.into(),
+        Err(e) => syn::Error::new(path.span(), format!("{e:#}")).to_compile_error().into(),
+    }
 }

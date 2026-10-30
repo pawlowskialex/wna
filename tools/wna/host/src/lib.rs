@@ -6,6 +6,8 @@
 //!   is installed, then swap the Wasm instance in without the importer noticing.
 
 pub mod bridge;
+pub mod compose;
+pub mod control;
 pub mod dyntable;
 pub mod dynval;
 pub mod host;

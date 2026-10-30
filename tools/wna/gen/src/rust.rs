@@ -939,7 +939,22 @@ pub mod __wna_world {{
     const IMPORT_PTRS: &[*const ::core::ffi::c_char] = &[{}];
     const EXPORT_PTRS: &[*const ::core::ffi::c_char] = &[{}];
 
-    pub fn import(i: usize) -> {RT}::abi::Iface {{ instance().imports[i] }}
+    pub fn import(i: usize) -> {RT}::abi::Iface {{ instance().import(i) }}
+
+    /// For a host (a shell): an instance with its export tables, imports bound later.
+    pub fn host<T{bound}>() -> (&'static {RT}::component::Instance, ::std::vec::Vec<{RT}::abi::Iface>) {{
+        let inst = instantiate_unbound(N_RESOURCES);
+        let exports = EXPORTS
+            .iter()
+            .map(|e| {{
+                let name = ::std::ffi::CString::new(*e).unwrap();
+                let mut out = {RT}::abi::Iface::NULL;
+                unsafe {{ __get_export::<T>(inst as *mut ::core::ffi::c_void, name.as_ptr(), &mut out) }};
+                out
+            }})
+            .collect();
+        (unsafe {{ &*inst }}, exports)
+    }}
 
     pub fn descriptor<T{bound}>() -> &'static {RT}::abi::Component {{
         const {{
@@ -989,7 +1004,7 @@ pub mod __wna_world {{
             self.exports
                 .iter()
                 .enumerate()
-                .map(|(n, &i)| format!("if {RT}::component::iface_matches(req, EXPORTS[{n}]) {{ super::{}::__table::<T>() as *const _ as *const ::core::ffi::c_void }} else", self.module_path(i).join("::")))
+                .map(|(n, &i)| format!("if {RT}::component::iface_matches(req, EXPORTS[{n}]) {{ super::{}::__table::<T>() as *const _ as *const ::core::ffi::c_void }} else ", self.module_path(i).join("::")))
                 .collect::<String>(),
         )
         .unwrap();
